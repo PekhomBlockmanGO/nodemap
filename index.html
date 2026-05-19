@@ -1,0 +1,3035 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeMap - Visual Syllabus Tracker</title>
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@700;800&display=swap"
+        rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- interact.js -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        :root {
+            --color-bg: #F7F3EC;
+            --color-dot: #C4BAA8;
+            --color-text-prime: #1A1A2E;
+            --color-text-muted: #A89880;
+            --color-border: #E0D9CE;
+            --color-surface: rgba(255, 255, 255, 0.75);
+            --color-subject: #6C63FF;
+            --color-chapter: #3B82F6;
+            --color-unit: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg);
+            background-image: radial-gradient(circle, var(--color-dot) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-attachment: fixed;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* Top Bar */
+        #topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 52px;
+            background: rgba(247, 243, 236, 0.88);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: 0 1px 12px rgba(0, 0, 0, 0.06);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+        }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--color-text-prime);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            outline: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-save {
+            background: var(--color-subject);
+            color: white;
+        }
+
+        .btn-clear {
+            background: transparent;
+            border: 1px solid #D0C9BE;
+            color: #8A7F72;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            position: fixed;
+            top: 52px;
+            left: 0;
+            width: 190px;
+            height: calc(100vh - 52px);
+            background: rgba(247, 243, 236, 0.92);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--color-border);
+            box-shadow: 2px 0 16px rgba(0, 0, 0, 0.04);
+            z-index: 90;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.25s ease;
+        }
+
+        #sidebar.collapsed {
+            width: 48px;
+        }
+
+        #sidebar-toggle {
+            position: absolute;
+            top: 14px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            background: #EDE8DF;
+            border: 1px solid #D0C9BE;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            font-size: 14px;
+            color: var(--color-text-prime);
+        }
+
+        #sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+
+        .sidebar-section-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--color-text-muted);
+            padding: 20px 16px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .template-tile {
+            margin: 8px 16px;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: white;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .sidebar-text-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .template-tile-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--color-text-prime);
+        }
+
+        .template-tile-desc {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dot-icon {
+            font-size: 18px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .tile-subject {
+            border-color: rgba(108, 99, 255, 0.3);
+        }
+
+        .tile-subject .dot-icon {
+            color: var(--color-subject);
+        }
+
+        .tile-chapter {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .tile-chapter .dot-icon {
+            color: var(--color-chapter);
+        }
+
+        .tile-unit {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .tile-unit .dot-icon {
+            color: var(--color-unit);
+        }
+
+        /* Collapsed Sidebar overrides */
+        #sidebar.collapsed .template-tile {
+            margin: 8px;
+            padding: 12px 0;
+            justify-content: center;
+        }
+
+        #sidebar.collapsed .dot-icon {
+            margin-right: 0;
+            font-size: 20px;
+        }
+
+        .collapsed-tooltip {
+            position: absolute;
+            left: 56px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1A1A2E;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            display: none;
+        }
+
+        #sidebar.collapsed .collapsed-tooltip {
+            display: block;
+        }
+
+        #sidebar.collapsed .template-tile:hover .collapsed-tooltip {
+            opacity: 1;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--color-border);
+            margin: 16px 16px 0;
+        }
+
+        .tip-row {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            padding: 4px 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Progress Dashboard */
+        #progress-dashboard {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        .progress-row {
+            padding: 8px 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .progress-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: var(--color-text-prime);
+        }
+
+        .progress-pct {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 11px;
+        }
+
+        .progress-bar-wrap {
+            height: 6px;
+            width: 100%;
+            background: #E2E8F0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* Canvas */
+        #canvas-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #canvas-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transform-origin: 0 0;
+        }
+
+        /* Empty State */
+        #empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .empty-icon {
+            font-size: 56px;
+            color: #C4BAA8;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 15px;
+            color: #B8B0A4;
+            margin-bottom: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .empty-subtext {
+            font-size: 12px;
+            color: #C8C0B4;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* SVG Connections */
+        #connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .connection-path {
+            pointer-events: stroke;
+            cursor: pointer;
+            transition: stroke-width 0.2s, stroke-opacity 0.2s;
+        }
+
+        .connection-path:hover {
+            stroke-width: 3px !important;
+            stroke-opacity: 1 !important;
+        }
+
+        /* Nodes */
+        .node {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 20;
+            touch-action: none;
+        }
+
+        .node:active {
+            cursor: grabbing !important;
+        }
+
+        .node-subject {
+            background: var(--color-surface);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid var(--node-accent-t35);
+            border-radius: 14px;
+            box-shadow: 0 4px 24px var(--node-accent-t20), 0 1px 4px rgba(0, 0, 0, 0.06);
+            display: flex;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            width: 100%;
+            height: 90px;
+        }
+
+        .node:hover .node-subject {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px var(--node-accent-t20), 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .node.dragging .node-subject {
+            opacity: 0.92;
+            box-shadow: 0 12px 40px var(--node-accent-t35);
+            transform: translateY(-4px);
+        }
+
+        .node-subject-accent {
+            width: 4px;
+            height: 100%;
+            background: var(--node-accent);
+            border-radius: 14px 0 0 14px;
+            flex-shrink: 0;
+        }
+
+        .node-subject-content {
+            padding: 14px 16px 14px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .node-subject-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            overflow: hidden;
+        }
+
+        /* Editable Text */
+        .editable-text {
+            outline: none;
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .editable-text[contenteditable="true"] {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px dashed var(--color-border);
+            user-select: text;
+            cursor: text;
+            text-overflow: clip;
+            overflow: visible;
+            z-index: 50;
+            position: relative;
+        }
+
+        .node-subject-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-prime);
+            width: 100%;
+        }
+
+        .node-subject-sub {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .node-group {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1.5px solid var(--node-accent-t35);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--node-accent-t20), 0 1px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            width: 100%;
+        }
+
+        .node:hover .node-group {
+            transform: translateY(-2px);
+        }
+
+        .node.dragging .node-group {
+            opacity: 0.92;
+            box-shadow: 0 12px 40px var(--node-accent-t35);
+            transform: translateY(-4px);
+        }
+
+        .node-group-inner {
+            display: flex;
+        }
+
+        .node-group-accent {
+            width: 4px;
+            background: var(--node-accent);
+            border-radius: 12px 0 0 0;
+            flex-shrink: 0;
+        }
+
+        .node-unit .node-group-accent {
+            background: var(--node-accent);
+            border-radius: 10px 0 0 0;
+        }
+
+        .node-group-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .node-group-header {
+            padding: 12px 14px 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .node-group-title {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--color-text-prime);
+            width: calc(100% - 20px);
+        }
+
+        .node-unit .node-group-title {
+            font-size: 12px;
+        }
+
+        .icon-edit {
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            color: var(--color-text-muted);
+        }
+
+        .node-group-header:hover .icon-edit {
+            opacity: 1;
+        }
+
+        .node-divider {
+            height: 1px;
+            background: #EDE8DF;
+        }
+
+        .node-checklist {
+            padding: 8px 14px 8px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 30px;
+            position: relative;
+            border-radius: 4px;
+            padding: 0 4px;
+            margin-left: -4px;
+            transition: background 0.15s;
+        }
+
+        .check-item:hover .check-delete {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .check-item.checked {
+            background: #EFF6FF;
+        }
+
+        .node-unit .check-item.checked {
+            background: #ECFDF5;
+        }
+
+        .check-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 4px;
+            border: 2px solid #CBD5E1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .check-item.checked .check-box {
+            background: var(--node-accent);
+            border-color: var(--node-accent);
+        }
+
+        .check-icon {
+            color: white;
+            font-size: 14px;
+            display: none;
+            line-height: 1;
+        }
+
+        .check-item.checked .check-icon {
+            display: block;
+        }
+
+        .check-text {
+            font-size: 13px;
+            color: #374151;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .node-unit .check-text {
+            font-size: 12px;
+        }
+
+        .check-item.checked .check-text {
+            text-decoration: line-through;
+            color: #9CA3AF;
+        }
+
+        .check-delete {
+            font-size: 16px;
+            color: #CBD5E1;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            background: transparent;
+            border: none;
+            margin-left: auto;
+            outline: none;
+        }
+
+        .check-delete:hover {
+            color: #EF4444;
+        }
+
+        .check-add {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            margin-top: 4px;
+            padding: 4px 0;
+            border-bottom: 1px dashed var(--color-border);
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Notes */
+        .node-notes-toggle {
+            font-size: 11px;
+            color: #A89880;
+            cursor: pointer;
+            padding: 6px 14px 6px 18px;
+            border-top: 1px solid #EDE8DF;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .node-notes-container {
+            padding: 0 14px 8px 18px;
+        }
+
+        .node-notes {
+            width: 100%;
+            min-height: 60px;
+            background: transparent;
+            border: none;
+            resize: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #374151;
+            outline: none;
+        }
+
+        .node-progress-wrap {
+            height: 4px;
+            width: 100%;
+            background: #E2E8F0;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            margin-top: -1px;
+        }
+
+        .node-progress {
+            height: 100%;
+            background: var(--node-accent);
+            transition: width 0.3s ease;
+            border-radius: 0 0 0 12px;
+        }
+
+        .node-unit {
+            border: 1.5px solid var(--node-accent-t35);
+            box-shadow: 0 3px 16px var(--node-accent-t20), 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .node-unit .node-progress-wrap {
+            border-radius: 0 0 10px 10px;
+        }
+
+        .node-unit .node-progress {
+            border-radius: 0 0 0 10px;
+        }
+
+        /* Color Palette & Resize Handles */
+        .color-palette-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 12px;
+            color: #A89880;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        .node:hover .color-palette-btn {
+            opacity: 1;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            font-size: 12px;
+            color: #C4BAA8;
+            cursor: se-resize;
+            transform: rotate(45deg);
+            z-index: 10;
+        }
+
+        #color-picker {
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1000;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .color-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Ports */
+        .port {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            cursor: crosshair;
+            z-index: 25;
+            pointer-events: all;
+            background: var(--node-accent);
+            box-shadow: 0 0 0 3px var(--node-accent-t20);
+            animation: pulse-port 2s infinite alternate;
+        }
+
+        .port::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+        }
+
+        .port:hover {
+            box-shadow: 0 0 0 6px var(--node-accent-t35);
+        }
+
+        .port-right {
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .port-bottom {
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .port-left {
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes pulse-port {
+            from {
+                box-shadow: 0 0 0 2px var(--node-accent-t20);
+            }
+
+            to {
+                box-shadow: 0 0 0 4px var(--node-accent-t35);
+            }
+        }
+
+        .port-tooltip {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1A1A2E;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .port:hover .port-tooltip {
+            opacity: 1;
+        }
+
+        /* Delete connection button */
+        .conn-delete {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 50;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.1s;
+            font-family: sans-serif;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .conn-delete:hover {
+            background: #DC2626;
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1 !important;
+        }
+
+        /* Context Menu */
+        #context-menu {
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            padding: 4px 0;
+            display: none;
+            z-index: 1000;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        .ctx-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-prime);
+        }
+
+        .ctx-item:hover {
+            background: #F3F4F6;
+        }
+
+        /* Minimap & Floating Buttons */
+        .floating-btn {
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1A1A2E;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 80;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #btn-cheatsheet {
+            bottom: 136px;
+            right: 24px;
+        }
+
+        #btn-minimap {
+            bottom: 24px;
+            right: 24px;
+            display: none;
+        }
+
+        #credit-tag {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #minimap-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 160px;
+            height: 100px;
+            background: rgba(247, 243, 236, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E0D9CE;
+            border-radius: 10px;
+            z-index: 80;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        #minimap-header {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            z-index: 10;
+            font-size: 14px;
+            color: #A89880;
+        }
+
+        #minimap-canvas {
+            position: relative;
+            flex-grow: 1;
+            cursor: pointer;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+        }
+
+        .minimap-node {
+            position: absolute;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        #minimap-viewport {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        /* Modal */
+        #cheatsheet-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-card {
+            position: relative;
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--color-text-prime);
+        }
+
+        .cheatsheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .cheatsheet-table td {
+            padding: 6px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .cheatsheet-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .cheatsheet-table td:first-child {
+            font-weight: 600;
+            color: #1A1A2E;
+            width: 120px;
+        }
+
+        /* Toast */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1A1A2E;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            border-radius: 8px;
+            padding: 10px 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            animation: slideInUp 0.3s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Attachments Panel */
+        #attachments-panel-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 190;
+            display: none;
+        }
+
+        #attachments-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 340px;
+            height: 100vh;
+            background: rgba(247, 243, 236, 0.97);
+            backdrop-filter: blur(16px);
+            border-left: 1px solid #E0D9CE;
+            box-shadow: -4px 0 32px rgba(0, 0, 0, 0.10);
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #attachments-panel.open {
+            transform: translateX(0);
+        }
+
+        #attachments-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid #E0D9CE;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        #attachments-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1A1A2E;
+            margin-bottom: 4px;
+        }
+
+        #attachments-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .attachments-close {
+            font-size: 20px;
+            color: #A89880;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .attachments-close:hover {
+            color: #1A1A2E;
+        }
+
+        #attachments-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+        }
+
+        .attach-section {
+            margin-top: 24px;
+        }
+
+        .attach-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            color: #1A1A2E;
+            margin-bottom: 12px;
+        }
+
+        .attach-label-row i.bx-plus-circle {
+            font-size: 16px;
+            color: #A89880;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .attach-label-row i.bx-plus-circle:hover {
+            color: #6C63FF;
+        }
+
+        .attach-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            margin: 0 -10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .attach-row:hover {
+            background: #F0EDE6;
+        }
+
+        .attach-row .attach-icon {
+            font-size: 18px;
+            color: #3B82F6;
+            flex-shrink: 0;
+        }
+
+        .attach-row-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            color: #1A1A2E;
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            outline: none;
+        }
+
+        .attach-row-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .attach-row:hover .attach-row-actions {
+            opacity: 1;
+        }
+
+        .attach-row-actions i {
+            font-size: 16px;
+            color: #EF4444;
+        }
+
+        .attach-row-actions i.bx-show {
+            color: #6C63FF;
+        }
+
+        .attach-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .attach-input-row input {
+            flex-grow: 1;
+            border: none;
+            border-bottom: 1px solid #E0D9CE;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: #1A1A2E;
+            padding: 4px 0;
+            outline: none;
+        }
+
+        .attach-input-row input::placeholder {
+            color: #A89880;
+        }
+
+        .attach-input-row i {
+            font-size: 18px;
+            color: #10B981;
+            cursor: pointer;
+        }
+
+        .attach-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            margin: 0 -8px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .attach-card:hover {
+            background: #F0EDE6;
+        }
+
+        .attach-card-thumb {
+            width: 72px;
+            height: 72px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #E0D9CE;
+        }
+
+        .attach-card-pdf {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #FEE2E2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .attach-card-pdf i {
+            font-size: 20px;
+            color: #EF4444;
+        }
+
+        .attach-card-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .attach-card-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attach-card-meta {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            color: #A89880;
+            margin-top: 2px;
+        }
+
+        .attach-card:hover .attach-row-actions {
+            opacity: 1;
+        }
+
+        .attach-inline-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .attach-inline-options div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #6C63FF;
+            cursor: pointer;
+            padding: 4px 8px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Node Attachment Button & Indicator */
+        .node-attach-btn {
+            position: relative;
+            color: #A89880;
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .node-attach-btn:hover {
+            color: #6C63FF;
+            background: rgba(108, 99, 255, 0.08);
+        }
+
+        .node-attach-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background: #6C63FF;
+            color: white;
+            border-radius: 50%;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .node-attach-summary {
+            font-family: 'Poppins', sans-serif;
+            font-size: 10px;
+            color: #A89880;
+            padding: 6px 14px 6px 18px;
+            border-top: 1px solid #EDE8DF;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .node-attach-summary:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Lightbox */
+        #lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #lightbox-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* PDF Modal */
+        #pdf-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #pdf-modal-backdrop {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #pdf-modal-content {
+            position: relative;
+            width: 320px;
+            height: 480px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #pdf-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #F7F3EC;
+            border-bottom: 1px solid #E0D9CE;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: #1A1A2E;
+        }
+
+        #pdf-modal-header i {
+            font-size: 18px;
+            cursor: pointer;
+            color: #A89880;
+            transition: color 0.2s;
+        }
+
+        #pdf-modal-header i:hover {
+            color: #1A1A2E;
+        }
+
+        #pdf-iframe {
+            border: none;
+            flex-grow: 1;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- UI Chrome -->
+    <div id="topbar">
+        <div class="logo-text"><i class='bx bxs-circle' style='color:#6C63FF;font-size:10px'></i> NodeMap</div>
+        <div class="topbar-actions">
+            <button class="btn btn-save" onclick="saveState(true)"><i class='bx bx-save'></i> Save</button>
+            <button class="btn btn-clear" onclick="clearCanvas()"><i class='bx bx-trash'></i> Clear</button>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <div id="sidebar-toggle" onclick="toggleSidebar()">
+            <i class='bx bx-chevron-left' id="sidebar-toggle-icon"></i>
+        </div>
+
+        <div class="sidebar-section-title sidebar-text">NODES</div>
+
+        <div class="template-tile tile-subject" draggable="true" data-type="subject" onclick="spawnNode('subject')">
+            <i class='bx bx-category-alt dot-icon'></i>
+            <div class="sidebar-text-wrap sidebar-text">
+                <div class="template-tile-header">Subject</div>
+                <div class="template-tile-desc">Root hub for a subject</div>
+            </div>
+            <div class="collapsed-tooltip">Subject</div>
+        </div>
+
+        <div class="template-tile tile-chapter" draggable="true" data-type="chapter" onclick="spawnNode('chapter')">
+            <i class='bx bx-list-check dot-icon'></i>
+            <div class="sidebar-text-wrap sidebar-text">
+                <div class="template-tile-header">Chapter Group</div>
+                <div class="template-tile-desc">Chapters with checklist</div>
+            </div>
+            <div class="collapsed-tooltip">Chapter Group</div>
+        </div>
+
+        <div class="template-tile tile-unit" draggable="true" data-type="unit" onclick="spawnNode('unit')">
+            <i class='bx bx-detail dot-icon'></i>
+            <div class="sidebar-text-wrap sidebar-text">
+                <div class="template-tile-header">Unit</div>
+                <div class="template-tile-desc">Sub-topic checklist</div>
+            </div>
+            <div class="collapsed-tooltip">Unit</div>
+        </div>
+
+        <div class="sidebar-divider sidebar-text"></div>
+        <div class="sidebar-section-title sidebar-text">TIPS</div>
+        <div class="tip-row sidebar-text"><i class='bx bx-move'></i> Drag nodes freely</div>
+        <div class="tip-row sidebar-text"><i class='bx bx-git-branch'></i> Drag ports to connect</div>
+        <div class="tip-row sidebar-text"><i class='bx bx-edit-alt'></i> Double-click to edit</div>
+        <div class="tip-row sidebar-text" style="margin-top: 8px;"><i class='bx bx-expand-alt'></i> Space+Drag to pan
+        </div>
+        <div class="tip-row sidebar-text"><i class='bx bx-search-plus'></i> Scroll to zoom</div>
+
+        <div class="sidebar-divider sidebar-text"></div>
+        <div class="sidebar-section-title sidebar-text"><i class='bx bx-bar-chart-alt-2'></i> PROGRESS</div>
+        <div id="progress-dashboard" class="sidebar-text"></div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-wrapper">
+        <div id="empty-state">
+            <div class="empty-icon"><i class='bx bx-network-chart'></i></div>
+            <div class="empty-text">Drag a node from the panel to begin</div>
+            <div class="empty-subtext">Build your syllabus map visually</div>
+        </div>
+
+        <div id="canvas-content">
+            <svg id="connections-svg">
+                <defs></defs>
+            </svg>
+            <div id="nodes-container"></div>
+            <div id="conn-actions-container"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Minimap & Floating buttons -->
+    <div class="floating-btn" id="btn-cheatsheet" onclick="openCheatsheet()">
+        <i class='bx bx-help-circle'></i>
+    </div>
+
+    <div id="minimap-container">
+        <div id="minimap-header">
+            <i class='bx bx-minus' onclick="toggleMinimap()" style="cursor:pointer;"></i>
+        </div>
+        <div id="minimap-canvas" onclick="minimapClick(event)">
+            <div id="minimap-viewport"></div>
+        </div>
+    </div>
+    <div class="floating-btn" id="btn-minimap" onclick="toggleMinimap()">
+        <i class='bx bx-map-alt'></i>
+    </div>
+
+    <div id="credit-tag">made by Pekky</div>
+
+    <!-- Context Menu & Pickers -->
+    <div id="context-menu"></div>
+    <div id="toast-container"></div>
+
+    <div id="color-picker">
+        <div class="color-swatch" style="background: #6C63FF;" onclick="selectColor('#6C63FF')"></div>
+        <div class="color-swatch" style="background: #3B82F6;" onclick="selectColor('#3B82F6')"></div>
+        <div class="color-swatch" style="background: #10B981;" onclick="selectColor('#10B981')"></div>
+        <div class="color-swatch" style="background: #F59E0B;" onclick="selectColor('#F59E0B')"></div>
+        <div class="color-swatch" style="background: #EF4444;" onclick="selectColor('#EF4444')"></div>
+        <div class="color-swatch" style="background: #EC4899;" onclick="selectColor('#EC4899')"></div>
+        <div class="color-swatch" style="background: #8B5CF6;" onclick="selectColor('#8B5CF6')"></div>
+        <div class="color-swatch" style="background: #06B6D4;" onclick="selectColor('#06B6D4')"></div>
+    </div>
+
+    <!-- Cheatsheet Modal -->
+    <div id="cheatsheet-modal">
+        <div class="modal-backdrop" onclick="closeCheatsheet()"></div>
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>Keyboard Shortcuts</span>
+                <i class='bx bx-x' style="cursor:pointer; font-size: 20px;" onclick="closeCheatsheet()"></i>
+            </div>
+            <table class="cheatsheet-table">
+                <tr>
+                    <td>Ctrl+S</td>
+                    <td>Save</td>
+                </tr>
+                <tr>
+                    <td>Ctrl+Z</td>
+                    <td>Undo</td>
+                </tr>
+                <tr>
+                    <td>Space+Drag</td>
+                    <td>Pan canvas</td>
+                </tr>
+                <tr>
+                    <td>Scroll</td>
+                    <td>Zoom in/out</td>
+                </tr>
+                <tr>
+                    <td>Double-click</td>
+                    <td>Edit text</td>
+                </tr>
+                <tr>
+                    <td>Right-click</td>
+                    <td>Context menu</td>
+                </tr>
+                <tr>
+                    <td>Escape</td>
+                    <td>Cancel / Close</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Attachments Drawer Panel -->
+    <div id="attachments-panel-backdrop" onclick="closeAttachmentsPanel()"></div>
+    <div id="attachments-panel">
+        <div id="attachments-header">
+            <div>
+                <div id="attachments-title" class="sidebar-text"></div>
+                <div id="attachments-tag"></div>
+            </div>
+            <i class='bx bx-x attachments-close' onclick="closeAttachmentsPanel()"></i>
+        </div>
+        <div id="attachments-body">
+            <!-- Sections will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Lightbox for Images -->
+    <div id="lightbox-overlay" onclick="closeLightbox()">
+        <i class='bx bx-x lightbox-close'></i>
+        <img id="lightbox-img" src="" alt="preview" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdf-modal">
+        <div id="pdf-modal-backdrop" onclick="closePdfModal()"></div>
+        <div id="pdf-modal-content">
+            <div id="pdf-modal-header">
+                <span>PDF Viewer</span>
+                <i class='bx bx-x' onclick="closePdfModal()"></i>
+            </div>
+            <iframe id="pdf-iframe" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        // --- State ---
+        let state = {
+            version: 2,
+            nodes: [],
+            connections: [],
+            viewport: { x: 0, y: 0, scale: 1.0 }
+        };
+
+        let history = []; // for undo
+
+        const canvasContent = document.getElementById('canvas-content');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        const nodesContainer = document.getElementById('nodes-container');
+        const svg = document.getElementById('connections-svg');
+        const emptyState = document.getElementById('empty-state');
+        const connActionsContainer = document.getElementById('conn-actions-container');
+
+        // Panning and Zooming State
+        let isPanning = false;
+        let panStartX = 0; let panStartY = 0;
+        let isSpaceDown = false;
+
+        // Connection State
+        let isDrawingConnection = false;
+        let activeSourceNode = null;
+        let activeSourcePort = null;
+        let livePreviewPath = null;
+
+        // --- Core Helpers ---
+        function uuidv4() { return crypto.randomUUID(); }
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+        function hexToRgba(hex, alpha) {
+            if (!hex) return `rgba(0,0,0,${alpha})`;
+            if (hex.length === 4) hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+            let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+        function getColor(type) {
+            if (type === 'subject') return '#6C63FF';
+            if (type === 'chapter') return '#3B82F6';
+            return '#10B981';
+        }
+
+        function saveSnapshot() {
+            history.push(JSON.stringify(state));
+            if (history.length > 20) history.shift();
+        }
+
+        function saveState(showToastMsg = false) {
+            localStorage.setItem('nodemap_canvas_state', JSON.stringify(state));
+            if (showToastMsg) showToast("Saved");
+            updateEmptyState();
+            updateProgressDashboard();
+            updateMinimap();
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('nodemap_canvas_state');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    restoreViewport();
+                    state.nodes.forEach(n => renderNode(n));
+                    drawAllConnections();
+                } catch (e) { console.error("Error loading state", e); }
+            }
+            updateEmptyState();
+            updateProgressDashboard();
+            updateMinimap();
+        }
+
+        function updateEmptyState() {
+            emptyState.style.display = state.nodes.length === 0 ? 'block' : 'none';
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = msg.includes("Saved") ? "<i class='bx bx-check-circle'></i>" :
+                msg.includes("Undo") ? "<i class='bx bx-undo'></i>" : "<i class='bx bx-trash'></i>";
+            toast.innerHTML = `${icon} <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function clearCanvas() {
+            if (confirm("Are you sure you want to clear the canvas? This cannot be undone.")) {
+                saveSnapshot();
+                state.nodes = [];
+                state.connections = [];
+                nodesContainer.innerHTML = '';
+                svg.innerHTML = '<defs></defs>';
+                connActionsContainer.innerHTML = '';
+                state.viewport = { x: 0, y: 0, scale: 1.0 };
+                restoreViewport();
+                saveState();
+            }
+        }
+
+        function undo() {
+            if (history.length > 0) {
+                const prev = history.pop();
+                state = JSON.parse(prev);
+                nodesContainer.innerHTML = '';
+                svg.innerHTML = '<defs></defs>';
+                connActionsContainer.innerHTML = '';
+                restoreViewport();
+                state.nodes.forEach(n => renderNode(n));
+                drawAllConnections();
+                saveState();
+                showToast("Undo");
+            }
+        }
+
+        // --- Viewport Pan & Zoom ---
+        function updateViewport() {
+            canvasContent.style.transform = `translate(${state.viewport.x}px, ${state.viewport.y}px) scale(${state.viewport.scale})`;
+            updateMinimapViewportOnly();
+        }
+
+        function restoreViewport() { updateViewport(); }
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.contentEditable !== 'true') {
+                isSpaceDown = true;
+                document.body.style.cursor = 'grab';
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+            if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveState(true); }
+            if (e.key === 'Escape') {
+                cancelConnection();
+                closeContextMenu();
+                closeCheatsheet();
+                document.getElementById('color-picker').style.display = 'none';
+            }
+        });
+        document.addEventListener('keyup', e => {
+            if (e.code === 'Space') {
+                isSpaceDown = false;
+                document.body.style.cursor = '';
+            }
+        });
+
+        canvasWrapper.addEventListener('mousedown', e => {
+            if (e.button === 1 || (e.button === 0 && isSpaceDown)) {
+                isPanning = true;
+                panStartX = e.clientX - state.viewport.x;
+                panStartY = e.clientY - state.viewport.y;
+                document.body.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (isPanning) {
+                state.viewport.x = e.clientX - panStartX;
+                state.viewport.y = e.clientY - panStartY;
+                updateViewport();
+            }
+            if (isDrawingConnection && activeSourceNode) {
+                updateLiveConnection(e.clientX, e.clientY);
+            }
+        });
+
+        window.addEventListener('mouseup', e => {
+            if (isPanning) {
+                isPanning = false;
+                document.body.style.cursor = isSpaceDown ? 'grab' : '';
+                saveState();
+            }
+            if (isDrawingConnection) {
+                cancelConnection();
+            }
+        });
+
+        canvasWrapper.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomIntensity = 0.001;
+            const wheel = e.deltaY < 0 ? 1 : -1;
+            let zoom = Math.exp(wheel * zoomIntensity * 50);
+
+            let newScale = state.viewport.scale * zoom;
+            newScale = Math.max(0.3, Math.min(newScale, 2.5));
+
+            const rect = canvasWrapper.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const ratio = 1 - newScale / state.viewport.scale;
+            state.viewport.x += (mouseX - state.viewport.x) * ratio;
+            state.viewport.y += (mouseY - state.viewport.y) * ratio;
+            state.viewport.scale = newScale;
+
+            updateViewport();
+            saveState();
+        }, { passive: false });
+
+        // --- UI Interactions ---
+        // Sidebar Toggle
+        let sidebarCollapsed = localStorage.getItem('nodemap_sidebar') === 'collapsed';
+        function applySidebarState() {
+            const sb = document.getElementById('sidebar');
+            const icon = document.getElementById('sidebar-toggle-icon');
+            if (sidebarCollapsed) {
+                sb.classList.add('collapsed');
+                icon.className = 'bx bx-chevron-right';
+            } else {
+                sb.classList.remove('collapsed');
+                icon.className = 'bx bx-chevron-left';
+            }
+        }
+        function toggleSidebar() {
+            sidebarCollapsed = !sidebarCollapsed;
+            localStorage.setItem('nodemap_sidebar', sidebarCollapsed ? 'collapsed' : 'expanded');
+            applySidebarState();
+        }
+        applySidebarState();
+
+        // Minimap Toggle
+        let minimapVisible = localStorage.getItem('nodemap_minimap') !== 'hidden';
+        function applyMinimapState() {
+            const container = document.getElementById('minimap-container');
+            const btn = document.getElementById('btn-minimap');
+            if (minimapVisible) {
+                container.style.display = 'flex';
+                btn.style.display = 'none';
+                updateMinimap();
+            } else {
+                container.style.display = 'none';
+                btn.style.display = 'flex';
+            }
+        }
+        function toggleMinimap() {
+            minimapVisible = !minimapVisible;
+            localStorage.setItem('nodemap_minimap', minimapVisible ? 'visible' : 'hidden');
+            applyMinimapState();
+        }
+        applyMinimapState();
+
+        // Cheatsheet
+        function openCheatsheet() { document.getElementById('cheatsheet-modal').style.display = 'flex'; }
+        function closeCheatsheet() { document.getElementById('cheatsheet-modal').style.display = 'none'; }
+
+        // --- Node Spawning & Rendering ---
+        function getCanvasCenter() {
+            const rect = canvasWrapper.getBoundingClientRect();
+            const cx = rect.width / 2;
+            const cy = rect.height / 2;
+            const x = (cx - state.viewport.x) / state.viewport.scale;
+            const y = (cy - state.viewport.y) / state.viewport.scale;
+            return { x, y };
+        }
+
+        function spawnNode(type, x, y) {
+            saveSnapshot();
+            if (x === undefined) {
+                const center = getCanvasCenter();
+                x = center.x - 100;
+                y = center.y - 50;
+            }
+
+            const node = {
+                id: uuidv4(), type, x, y,
+                title: type === 'subject' ? 'Subject Name' : (type === 'chapter' ? 'Chapter Group' : 'Unit'),
+                width: type === 'subject' ? 220 : (type === 'chapter' ? 250 : 210),
+                color: null,
+                notesExpanded: false,
+                items: type !== 'subject' ? [{ id: uuidv4(), text: 'New Item', checked: false }] : [],
+                attachments: []
+            };
+
+            state.nodes.push(node);
+            renderNode(node);
+            saveState();
+        }
+
+        function renderNode(nodeData) {
+            if (!nodeData.attachments) nodeData.attachments = [];
+            let el = document.getElementById(nodeData.id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = nodeData.id;
+                el.className = `node`;
+                nodesContainer.appendChild(el);
+            }
+
+            el.style.transform = `translate(${nodeData.x}px, ${nodeData.y}px)`;
+            let w = nodeData.width || (nodeData.type === 'subject' ? 220 : (nodeData.type === 'chapter' ? 250 : 210));
+            el.style.width = w + 'px';
+
+            let accentColor = nodeData.color || getColor(nodeData.type);
+            el.style.setProperty('--node-accent', accentColor);
+            el.style.setProperty('--node-accent-t20', hexToRgba(accentColor, 0.2));
+            el.style.setProperty('--node-accent-t35', hexToRgba(accentColor, 0.35));
+
+            if (nodeData.type === 'subject') {
+                el.innerHTML = `
+                    <div class="node-subject">
+                        <div class="node-subject-accent"></div>
+                        <div class="node-subject-content">
+                            <div class="node-subject-top">
+                                <i class='bx bx-book-open' style="color: var(--node-accent); font-size: 18px; margin-right: 4px; flex-shrink:0;"></i>
+                                <div class="node-subject-title editable-text" contenteditable="false" spellcheck="false" 
+                                     ondblclick="this.contentEditable=true; this.focus(); document.execCommand('selectAll',false,null);"
+                                     onblur="this.contentEditable=false; updateNodeTitle('${nodeData.id}', this.innerText)"
+                                     onkeydown="handleEnter(event)">${escapeHtml(nodeData.title)}</div>
+                            </div>
+                            <div class="node-subject-sub">subject</div>
+                        </div>
+                    </div>
+                    <div class="color-palette-btn" onclick="openNodePalette(event, '${nodeData.id}')"><i class='bx bx-palette'></i></div>
+                    <i class='bx bx-expand-alt resize-handle'></i>
+                    <div class="port port-right port-output" data-node="${nodeData.id}" data-port="right" onmousedown="startConnection(event, '${nodeData.id}', 'right')"><div class="port-tooltip">drag to connect</div></div>
+                    <div class="port port-bottom port-output" data-node="${nodeData.id}" data-port="bottom" onmousedown="startConnection(event, '${nodeData.id}', 'bottom')"><div class="port-tooltip">drag to connect</div></div>
+                `;
+            } else {
+                const checkedCount = nodeData.items.filter(i => i.checked).length;
+                const totalCount = nodeData.items.length;
+                const progress = totalCount === 0 ? 0 : (checkedCount / totalCount) * 100;
+
+                let itemsHtml = nodeData.items.map(item => `
+                    <div class="check-item ${item.checked ? 'checked' : ''}" data-item="${item.id}">
+                        <div class="check-box" onclick="toggleCheck('${nodeData.id}', '${item.id}')">
+                            <i class='bx bx-check check-icon'></i>
+                        </div>
+                        <div class="check-text editable-text" contenteditable="false" spellcheck="false"
+                             ondblclick="this.contentEditable=true; this.focus(); document.execCommand('selectAll',false,null);"
+                             onblur="this.contentEditable=false; updateCheckText('${nodeData.id}', '${item.id}', this.innerText)"
+                             onkeydown="handleEnter(event)">${escapeHtml(item.text)}</div>
+                        <button class="check-delete" onclick="deleteCheckItem('${nodeData.id}', '${item.id}')"><i class='bx bx-x'></i></button>
+                    </div>
+                `).join('');
+
+                const nodeClass = nodeData.type === 'unit' ? 'node-group node-unit' : 'node-group';
+
+                el.innerHTML = `
+                    <div class="${nodeClass}">
+                        <div class="node-group-inner">
+                            <div class="node-group-accent"></div>
+                            <div class="node-group-content">
+                                <div class="node-group-header">
+                                    <div style="display:flex; align-items:center; flex-grow:1; min-width:0; gap:8px;">
+                                        <div class="node-group-title editable-text" contenteditable="false" spellcheck="false"
+                                             ondblclick="this.contentEditable=true; this.focus(); document.execCommand('selectAll',false,null);"
+                                             onblur="this.contentEditable=false; updateNodeTitle('${nodeData.id}', this.innerText)"
+                                             onkeydown="handleEnter(event)">${escapeHtml(nodeData.title)}</div>
+                                        <span class="icon-edit" onclick="triggerEdit('${nodeData.id}')"><i class='bx bx-pencil'></i></span>
+                                    </div>
+                                    <div class="node-attach-btn" title="Attachments" onclick="openAttachmentsPanel('${nodeData.id}')">
+                                        <i class='bx bx-paperclip'></i>
+                                        ${nodeData.attachments.length > 0 ? `<div class="node-attach-badge">${nodeData.attachments.length}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="node-divider"></div>
+                                <div class="node-checklist">
+                                    ${itemsHtml}
+                                    <div class="check-add" onclick="addCheckItem('${nodeData.id}')"><i class='bx bx-plus'></i> Add item</div>
+                                </div>
+                                <div class="node-notes-toggle" onclick="toggleNotes('${nodeData.id}')">
+                                    <i class='bx bx-notepad'></i> Notes
+                                </div>
+                                <div class="node-notes-container" style="display: ${nodeData.notesExpanded ? 'block' : 'none'}">
+                                    <textarea class="node-notes" placeholder="Add notes..." 
+                                              onblur="updateNotes('${nodeData.id}', this.value)"
+                                              onmousedown="event.stopPropagation()">${escapeHtml(nodeData.notes)}</textarea>
+                                </div>
+                                ${(() => {
+                        if (nodeData.attachments.length > 0) {
+                            let links = nodeData.attachments.filter(a => a.type === 'link').length;
+                            let images = nodeData.attachments.filter(a => a.type === 'image').length;
+                            let pdfs = nodeData.attachments.filter(a => a.type === 'pdf').length;
+                            let parts = [];
+                            if (links) parts.push(`${links} link${links > 1 ? 's' : ''}`);
+                            if (images) parts.push(`${images} image${images > 1 ? 's' : ''}`);
+                            if (pdfs) parts.push(`${pdfs} pdf${pdfs > 1 ? 's' : ''}`);
+                            return `<div class="node-attach-summary" onclick="openAttachmentsPanel('${nodeData.id}')">
+                                                    <i class='bx bx-paperclip'></i> ${parts.join(' · ')}
+                                                </div>`;
+                        }
+                        return '';
+                    })()}
+                            </div>
+                        </div>
+                        <div class="node-progress-wrap"><div class="node-progress" style="width: ${progress}%"></div></div>
+                    </div>
+                    <div class="color-palette-btn" onclick="openNodePalette(event, '${nodeData.id}')"><i class='bx bx-palette'></i></div>
+                    <i class='bx bx-expand-alt resize-handle'></i>
+                    <div class="port port-left port-input" data-node="${nodeData.id}" data-port="left" onmouseup="finishConnection(event, '${nodeData.id}', 'left')"></div>
+                    <div class="port port-right port-output" data-node="${nodeData.id}" data-port="right" onmousedown="startConnection(event, '${nodeData.id}', 'right')"><div class="port-tooltip">drag to connect</div></div>
+                    <div class="port port-bottom port-output" data-node="${nodeData.id}" data-port="bottom" onmousedown="startConnection(event, '${nodeData.id}', 'bottom')"><div class="port-tooltip">drag to connect</div></div>
+                `;
+            }
+
+            el.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY, nodeData.id, 'node');
+            });
+
+            makeDraggable(el);
+        }
+
+        // Edit handlers
+        function handleEnter(e) {
+            if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+        }
+        function triggerEdit(nodeId) {
+            const el = document.getElementById(nodeId);
+            const titleEl = el.querySelector('.node-group-title');
+            if (titleEl) {
+                titleEl.contentEditable = true;
+                titleEl.focus();
+                document.execCommand('selectAll', false, null);
+            }
+        }
+        function updateNodeTitle(id, text) {
+            const n = state.nodes.find(n => n.id === id);
+            if (n && n.title !== text) { saveSnapshot(); n.title = text; saveState(); }
+        }
+        function updateCheckText(nodeId, itemId, text) {
+            const n = state.nodes.find(n => n.id === nodeId);
+            const item = n.items.find(i => i.id === itemId);
+            if (item && item.text !== text) { saveSnapshot(); item.text = text; saveState(); }
+        }
+        function toggleCheck(nodeId, itemId) {
+            saveSnapshot();
+            const n = state.nodes.find(n => n.id === nodeId);
+            const item = n.items.find(i => i.id === itemId);
+            item.checked = !item.checked;
+            renderNode(n);
+            saveState();
+        }
+        function deleteCheckItem(nodeId, itemId) {
+            saveSnapshot();
+            const n = state.nodes.find(n => n.id === nodeId);
+            n.items = n.items.filter(i => i.id !== itemId);
+            renderNode(n);
+            drawAllConnections();
+            saveState();
+        }
+        function addCheckItem(nodeId) {
+            saveSnapshot();
+            const n = state.nodes.find(n => n.id === nodeId);
+            n.items.push({ id: uuidv4(), text: 'New Item', checked: false });
+            renderNode(n);
+            drawAllConnections();
+            saveState();
+            setTimeout(() => {
+                const el = document.getElementById(nodeId);
+                const edits = el.querySelectorAll('.check-text');
+                if (edits.length) {
+                    const last = edits[edits.length - 1];
+                    last.contentEditable = true;
+                    last.focus();
+                    document.execCommand('selectAll', false, null);
+                }
+            }, 50);
+        }
+        function toggleNotes(nodeId) {
+            saveSnapshot();
+            const n = state.nodes.find(n => n.id === nodeId);
+            n.notesExpanded = !n.notesExpanded;
+            renderNode(n);
+            drawAllConnections();
+            saveState();
+        }
+        function updateNotes(nodeId, val) {
+            const n = state.nodes.find(n => n.id === nodeId);
+            if (n && n.notes !== val) {
+                saveSnapshot();
+                n.notes = val;
+                saveState();
+            }
+        }
+
+        // Color Picker
+        let currentNodeForPalette = null;
+        function openNodePalette(e, nodeId) {
+            e.stopPropagation();
+            currentNodeForPalette = nodeId;
+            const picker = document.getElementById('color-picker');
+            picker.style.display = 'grid';
+            picker.style.left = (e.clientX - 60) + 'px';
+            picker.style.top = (e.clientY + 15) + 'px';
+        }
+        function selectColor(color) {
+            if (currentNodeForPalette) {
+                saveSnapshot();
+                const n = state.nodes.find(n => n.id === currentNodeForPalette);
+                n.color = color;
+                renderNode(n);
+                drawAllConnections();
+                saveState();
+                document.getElementById('color-picker').style.display = 'none';
+                currentNodeForPalette = null;
+            }
+        }
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#color-picker')) {
+                document.getElementById('color-picker').style.display = 'none';
+            }
+        });
+
+        // --- Drag & Drop & Resize ---
+        const tiles = document.querySelectorAll('.template-tile');
+        tiles.forEach(tile => {
+            tile.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('type', tile.dataset.type);
+            });
+        });
+
+        canvasWrapper.addEventListener('dragover', e => { e.preventDefault(); });
+        canvasWrapper.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if (type) {
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = (e.clientX - rect.left - state.viewport.x) / state.viewport.scale - 100;
+                const y = (e.clientY - rect.top - state.viewport.y) / state.viewport.scale - 40;
+                spawnNode(type, x, y);
+            }
+        });
+
+        function makeDraggable(el) {
+            interact(el).draggable({
+                inertia: false,
+                autoScroll: true,
+                listeners: {
+                    start(event) {
+                        saveSnapshot();
+                        event.target.classList.add('dragging');
+                        event.target.style.zIndex = 30;
+                    },
+                    move(event) {
+                        const id = event.target.id;
+                        const n = state.nodes.find(n => n.id === id);
+                        if (!n) return;
+
+                        n.x += event.dx / state.viewport.scale;
+                        n.y += event.dy / state.viewport.scale;
+
+                        event.target.style.transform = `translate(${n.x}px, ${n.y}px)`;
+
+                        updateNodeConnections(id);
+                    },
+                    end(event) {
+                        event.target.classList.remove('dragging');
+                        event.target.style.zIndex = 20;
+                        saveState();
+                    }
+                }
+            }).resizable({
+                edges: { bottom: false, right: '.resize-handle', left: false, top: false },
+                listeners: {
+                    start(event) {
+                        saveSnapshot();
+                    },
+                    move(event) {
+                        let target = event.target;
+                        const n = state.nodes.find(n => n.id === target.id);
+                        if (!n) return;
+
+                        let newW = n.width + event.deltaRect.right / state.viewport.scale;
+                        newW = Math.max(180, Math.min(newW, 420));
+
+                        n.width = newW;
+                        target.style.width = newW + 'px';
+
+                        updateNodeConnections(n.id);
+                    },
+                    end(event) {
+                        saveState();
+                    }
+                }
+            }).ignoreFrom('.editable-text, .check-box, .check-delete, .check-add, .node-notes, .port, .icon-edit, .color-palette-btn');
+        }
+
+        // --- Connections ---
+        function getPortPos(nodeId, portType) {
+            const el = document.getElementById(nodeId);
+            if (!el) return { x: 0, y: 0 };
+            const inner = el.firstElementChild;
+            if (!inner) return { x: 0, y: 0 };
+
+            const n = state.nodes.find(n => n.id === nodeId);
+            const w = inner.offsetWidth;
+            const h = inner.offsetHeight;
+
+            let x = n.x, y = n.y;
+            if (portType === 'left') { y += h / 2; }
+            if (portType === 'right') { x += w; y += h / 2; }
+            if (portType === 'bottom') { x += w / 2; y += h; }
+            return { x, y };
+        }
+
+        function ensureFilter(color) {
+            let id = 'glow-' + color.replace('#', '');
+            if (!document.getElementById(id)) {
+                let filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+                filter.id = id;
+                filter.innerHTML = `
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feFlood flood-color="${color}" flood-opacity="0.4" result="glowColor"/>
+                    <feComposite in="glowColor" in2="coloredBlur" operator="in" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                `;
+                svg.querySelector('defs').appendChild(filter);
+            }
+            return `url(#${id})`;
+        }
+        function ensureMarker(color) {
+            let id = 'arrow-' + color.replace('#', '');
+            if (!document.getElementById(id)) {
+                let marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.id = id;
+                marker.setAttribute('viewBox', '0 0 10 10');
+                marker.setAttribute('refX', '8');
+                marker.setAttribute('refY', '5');
+                marker.setAttribute('markerWidth', '6');
+                marker.setAttribute('markerHeight', '6');
+                marker.setAttribute('orient', 'auto');
+                marker.innerHTML = `<path d="M 0 0 L 10 5 L 0 10 z" fill="${color}"/>`;
+                svg.querySelector('defs').appendChild(marker);
+            }
+            return `url(#${id})`;
+        }
+
+        function drawBezier(x1, y1, x2, y2, sourcePort) {
+            let offset = Math.max(80, Math.abs(x2 - x1) * 0.5);
+            let cx1 = x1, cy1 = y1, cx2 = x2, cy2 = y2;
+
+            if (sourcePort === 'right') cx1 += offset;
+            if (sourcePort === 'bottom') { cy1 += offset; cx1 = x1; }
+
+            cx2 -= offset;
+
+            return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
+        }
+
+        function startConnection(e, nodeId, port) {
+            e.stopPropagation();
+            isDrawingConnection = true;
+            activeSourceNode = nodeId;
+            activeSourcePort = port;
+
+            const n = state.nodes.find(n => n.id === nodeId);
+            const accentColor = n.color || getColor(n.type);
+
+            livePreviewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            livePreviewPath.setAttribute('stroke', accentColor);
+            livePreviewPath.setAttribute('stroke-width', '1.5');
+            livePreviewPath.setAttribute('stroke-dasharray', '6 4');
+            livePreviewPath.setAttribute('stroke-opacity', '0.5');
+            livePreviewPath.setAttribute('fill', 'none');
+            svg.appendChild(livePreviewPath);
+        }
+
+        function updateLiveConnection(clientX, clientY) {
+            if (!livePreviewPath) return;
+            const p1 = getPortPos(activeSourceNode, activeSourcePort);
+
+            const rect = canvasContent.getBoundingClientRect();
+            const x2 = (clientX - rect.left) / state.viewport.scale;
+            const y2 = (clientY - rect.top) / state.viewport.scale;
+
+            livePreviewPath.setAttribute('d', drawBezier(p1.x, p1.y, x2, y2, activeSourcePort));
+        }
+
+        function finishConnection(e, targetNodeId, targetPort) {
+            if (isDrawingConnection && activeSourceNode && activeSourceNode !== targetNodeId) {
+                saveSnapshot();
+                const exists = state.connections.find(c =>
+                    c.sourceNodeId === activeSourceNode && c.sourcePort === activeSourcePort &&
+                    c.targetNodeId === targetNodeId && c.targetPort === targetPort
+                );
+
+                if (!exists) {
+                    state.connections.push({
+                        id: uuidv4(),
+                        sourceNodeId: activeSourceNode,
+                        sourcePort: activeSourcePort,
+                        targetNodeId,
+                        targetPort
+                    });
+                    drawAllConnections();
+                    saveState();
+                }
+            }
+            cancelConnection();
+        }
+
+        function cancelConnection() {
+            isDrawingConnection = false;
+            activeSourceNode = null;
+            activeSourcePort = null;
+            if (livePreviewPath) {
+                livePreviewPath.remove();
+                livePreviewPath = null;
+            }
+        }
+
+        function drawAllConnections() {
+            const defs = svg.querySelector('defs').innerHTML;
+            svg.innerHTML = '<defs>' + defs + '</defs>';
+            connActionsContainer.innerHTML = '';
+
+            state.connections.forEach(conn => drawConnection(conn));
+        }
+
+        function drawConnection(conn) {
+            const sNode = state.nodes.find(n => n.id === conn.sourceNodeId);
+            const tNode = state.nodes.find(n => n.id === conn.targetNodeId);
+            if (!sNode || !tNode) return;
+
+            const p1 = getPortPos(conn.sourceNodeId, conn.sourcePort);
+            const p2 = getPortPos(conn.targetNodeId, conn.targetPort);
+            const accentColor = sNode.color || getColor(sNode.type);
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.id = `path-${conn.id}`;
+            path.setAttribute('d', drawBezier(p1.x, p1.y, p2.x, p2.y, conn.sourcePort));
+            path.setAttribute('stroke', accentColor);
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-opacity', '0.75');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('filter', ensureFilter(accentColor));
+            path.setAttribute('marker-end', ensureMarker(accentColor));
+            path.classList.add('connection-path');
+
+            path.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY, conn.id, 'connection');
+            });
+
+            const delBtn = document.createElement('div');
+            delBtn.className = 'conn-delete';
+            delBtn.id = `btn-${conn.id}`;
+            delBtn.innerHTML = "<i class='bx bx-unlink'></i>";
+            delBtn.title = "Delete connection";
+
+            requestAnimationFrame(() => {
+                const len = path.getTotalLength();
+                if (len > 0) {
+                    const mid = path.getPointAtLength(len / 2);
+                    delBtn.style.left = mid.x + 'px';
+                    delBtn.style.top = mid.y + 'px';
+                }
+            });
+
+            delBtn.onclick = () => { deleteConnection(conn.id); };
+
+            path.addEventListener('mouseenter', () => delBtn.style.opacity = '1');
+            path.addEventListener('mouseleave', () => { setTimeout(() => { if (!delBtn.matches(':hover')) delBtn.style.opacity = '0'; }, 100); });
+            delBtn.addEventListener('mouseenter', () => delBtn.style.opacity = '1');
+            delBtn.addEventListener('mouseleave', () => delBtn.style.opacity = '0');
+
+            svg.appendChild(path);
+            connActionsContainer.appendChild(delBtn);
+        }
+
+        function updateNodeConnections(nodeId) {
+            state.connections.forEach(conn => {
+                if (conn.sourceNodeId === nodeId || conn.targetNodeId === nodeId) {
+                    const sNode = state.nodes.find(n => n.id === conn.sourceNodeId);
+                    const p1 = getPortPos(conn.sourceNodeId, conn.sourcePort);
+                    const p2 = getPortPos(conn.targetNodeId, conn.targetPort);
+
+                    const path = document.getElementById(`path-${conn.id}`);
+                    if (path) {
+                        path.setAttribute('d', drawBezier(p1.x, p1.y, p2.x, p2.y, conn.sourcePort));
+                        const len = path.getTotalLength();
+                        if (len > 0) {
+                            const mid = path.getPointAtLength(len / 2);
+                            const delBtn = document.getElementById(`btn-${conn.id}`);
+                            if (delBtn) {
+                                delBtn.style.left = mid.x + 'px';
+                                delBtn.style.top = mid.y + 'px';
+                            }
+                        }
+                    }
+                }
+            });
+            updateMinimap();
+        }
+
+        document.addEventListener('mouseup', () => {
+            if (document.querySelector('.dragging')) {
+                setTimeout(drawAllConnections, 50);
+            }
+        });
+
+        // --- Context Menu ---
+        const ctxMenu = document.getElementById('context-menu');
+        let ctxTargetId = null;
+        let ctxTargetType = null;
+
+        function showContextMenu(x, y, id, type) {
+            ctxTargetId = id;
+            ctxTargetType = type;
+            ctxMenu.style.display = 'block';
+            ctxMenu.style.left = x + 'px';
+            ctxMenu.style.top = y + 'px';
+
+            if (type === 'node') {
+                ctxMenu.innerHTML = `
+                    <div class="ctx-item" onclick="ctxAction('rename')"><i class='bx bx-rename'></i> Rename</div>
+                    <div class="ctx-item" onclick="ctxAction('duplicate')"><i class='bx bx-copy'></i> Duplicate</div>
+                    <div class="ctx-item" style="color:#EF4444" onclick="ctxAction('deleteNode')"><i class='bx bx-trash'></i> Delete Node</div>
+                `;
+            } else {
+                ctxMenu.innerHTML = `
+                    <div class="ctx-item" style="color:#EF4444" onclick="ctxAction('deleteConn')"><i class='bx bx-unlink'></i> Delete Connection</div>
+                `;
+            }
+        }
+
+        function closeContextMenu() { ctxMenu.style.display = 'none'; }
+        document.addEventListener('click', closeContextMenu);
+
+        function ctxAction(action) {
+            saveSnapshot();
+            if (action === 'deleteNode') {
+                state.nodes = state.nodes.filter(n => n.id !== ctxTargetId);
+                state.connections = state.connections.filter(c => c.sourceNodeId !== ctxTargetId && c.targetNodeId !== ctxTargetId);
+                const el = document.getElementById(ctxTargetId);
+                if (el) el.remove();
+                drawAllConnections();
+                showToast("Deleted node");
+            } else if (action === 'duplicate') {
+                const n = state.nodes.find(n => n.id === ctxTargetId);
+                const clone = JSON.parse(JSON.stringify(n));
+                clone.id = uuidv4();
+                clone.x += 40; clone.y += 40;
+                if (clone.items) clone.items.forEach(i => i.id = uuidv4());
+                state.nodes.push(clone);
+                renderNode(clone);
+                drawAllConnections();
+            } else if (action === 'rename') {
+                const el = document.getElementById(ctxTargetId);
+                const titleEl = el.querySelector('.editable-text');
+                if (titleEl) {
+                    setTimeout(() => {
+                        titleEl.contentEditable = true;
+                        titleEl.focus();
+                        document.execCommand('selectAll', false, null);
+                    }, 50);
+                }
+            } else if (action === 'deleteConn') {
+                deleteConnection(ctxTargetId);
+            }
+            saveState();
+        }
+
+        function deleteConnection(connId) {
+            saveSnapshot();
+            state.connections = state.connections.filter(c => c.id !== connId);
+            drawAllConnections();
+            saveState();
+        }
+
+        // --- Progress Dashboard ---
+        function getDownstreamNodes(nodeId, visited = new Set()) {
+            if (visited.has(nodeId)) return [];
+            visited.add(nodeId);
+            let nodes = [state.nodes.find(n => n.id === nodeId)];
+            let outConns = state.connections.filter(c => c.sourceNodeId === nodeId);
+            for (let c of outConns) {
+                nodes = nodes.concat(getDownstreamNodes(c.targetNodeId, visited));
+            }
+            return [...new Set(nodes)].filter(n => n);
+        }
+
+        function updateProgressDashboard() {
+            const dash = document.getElementById('progress-dashboard');
+            if (!dash) return;
+
+            const subjects = state.nodes.filter(n => n.type === 'subject');
+            if (subjects.length === 0) {
+                dash.innerHTML = '<div style="padding: 0 16px; font-size: 11px; color: var(--color-text-muted);">No subjects yet</div>';
+                return;
+            }
+
+            let html = '';
+            subjects.forEach(subj => {
+                const downstream = getDownstreamNodes(subj.id);
+                let total = 0, checked = 0;
+                downstream.forEach(n => {
+                    if (n.items) {
+                        total += n.items.length;
+                        checked += n.items.filter(i => i.checked).length;
+                    }
+                });
+
+                const pct = total === 0 ? 0 : Math.round((checked / total) * 100);
+                let truncName = subj.title.length > 14 ? subj.title.substring(0, 14) + '...' : subj.title;
+                let color = subj.color || getColor('subject');
+
+                html += `
+                    <div class="progress-row">
+                        <div class="progress-header">
+                            <span class="progress-name">${escapeHtml(truncName)}</span>
+                            <span class="progress-pct" style="color: ${color}">${pct}%</span>
+                        </div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill" style="width: ${pct}%; background: ${color}"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            dash.innerHTML = html;
+        }
+
+        // --- Minimap ---
+        function updateMinimap() {
+            const mm = document.getElementById('minimap-canvas');
+            const vp = document.getElementById('minimap-viewport');
+            if (!mm || !vp) return;
+
+            if (state.nodes.length === 0) {
+                mm.innerHTML = '';
+                mm.appendChild(vp);
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            state.nodes.forEach(n => {
+                let w = n.width || 200;
+                let el = document.getElementById(n.id);
+                let h = el ? el.offsetHeight : 100;
+
+                if (n.x < minX) minX = n.x;
+                if (n.y < minY) minY = n.y;
+                if (n.x + w > maxX) maxX = n.x + w;
+                if (n.y + h > maxY) maxY = n.y + h;
+            });
+
+            let pad = 200;
+            minX -= pad; minY -= pad;
+            maxX += pad; maxY += pad;
+
+            let mapW = mm.clientWidth;
+            let mapH = mm.clientHeight;
+            if (mapW === 0) return;
+
+            let scaleX = mapW / (maxX - minX);
+            let scaleY = mapH / (maxY - minY);
+            let scale = Math.min(scaleX, scaleY);
+
+            let offsetX = (mapW - (maxX - minX) * scale) / 2 - minX * scale;
+            let offsetY = (mapH - (maxY - minY) * scale) / 2 - minY * scale;
+
+            let html = '';
+            state.nodes.forEach(n => {
+                let w = n.width || 200;
+                let el = document.getElementById(n.id);
+                let h = el ? el.offsetHeight : 100;
+
+                let mx = n.x * scale + offsetX;
+                let my = n.y * scale + offsetY;
+                let mw = w * scale;
+                let mh = h * scale;
+
+                let color = n.color || getColor(n.type);
+                html += `<div class="minimap-node" style="left:${mx}px; top:${my}px; width:${mw}px; height:${mh}px; background:${color};"></div>`;
+            });
+
+            mm.innerHTML = html;
+            mm.appendChild(vp);
+
+            mm.dataset.scale = scale;
+            mm.dataset.offsetX = offsetX;
+            mm.dataset.offsetY = offsetY;
+
+            updateMinimapViewportOnly();
+        }
+
+        function updateMinimapViewportOnly() {
+            const mm = document.getElementById('minimap-canvas');
+            const vp = document.getElementById('minimap-viewport');
+            if (!mm || !vp || !mm.dataset.scale) return;
+
+            const scale = parseFloat(mm.dataset.scale);
+            const offsetX = parseFloat(mm.dataset.offsetX);
+            const offsetY = parseFloat(mm.dataset.offsetY);
+
+            const canvasRect = canvasWrapper.getBoundingClientRect();
+            let vpx = (-state.viewport.x / state.viewport.scale) * scale + offsetX;
+            let vpy = (-state.viewport.y / state.viewport.scale) * scale + offsetY;
+            let vpw = (canvasRect.width / state.viewport.scale) * scale;
+            let vph = (canvasRect.height / state.viewport.scale) * scale;
+
+            vp.style.left = vpx + 'px';
+            vp.style.top = vpy + 'px';
+            vp.style.width = vpw + 'px';
+            vp.style.height = vph + 'px';
+        }
+
+        function minimapClick(e) {
+            const mm = document.getElementById('minimap-canvas');
+            if (!mm.dataset.scale) return;
+            const rect = mm.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            const scale = parseFloat(mm.dataset.scale);
+            const offsetX = parseFloat(mm.dataset.offsetX);
+            const offsetY = parseFloat(mm.dataset.offsetY);
+
+            const cx = (mx - offsetX) / scale;
+            const cy = (my - offsetY) / scale;
+
+            const canvasRect = canvasWrapper.getBoundingClientRect();
+            state.viewport.x = canvasRect.width / 2 - cx * state.viewport.scale;
+            state.viewport.y = canvasRect.height / 2 - cy * state.viewport.scale;
+
+            updateViewport();
+            saveState();
+        }
+
+        // --- Attachments Logic ---
+        let currentAttachNodeId = null;
+
+        function openAttachmentsPanel(nodeId) {
+            currentAttachNodeId = nodeId;
+            document.getElementById('attachments-panel-backdrop').style.display = 'block';
+            setTimeout(() => { document.getElementById('attachments-panel').classList.add('open'); }, 10);
+            renderAttachmentsPanel();
+        }
+
+        function closeAttachmentsPanel() {
+            document.getElementById('attachments-panel').classList.remove('open');
+            setTimeout(() => {
+                document.getElementById('attachments-panel-backdrop').style.display = 'none';
+                currentAttachNodeId = null;
+            }, 280);
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function renderAttachmentsPanel() {
+            if (!currentAttachNodeId) return;
+            const node = state.nodes.find(n => n.id === currentAttachNodeId);
+            if (!node) return;
+
+            document.getElementById('attachments-title').innerText = node.title;
+            const tagEl = document.getElementById('attachments-tag');
+            tagEl.innerText = node.type === 'chapter' ? 'Chapter Group' : 'Unit';
+            const accent = node.color || getColor(node.type);
+            tagEl.style.color = accent;
+            tagEl.style.backgroundColor = hexToRgba(accent, 0.15);
+
+            let linksHtml = '', imagesHtml = '', pdfsHtml = '';
+
+            node.attachments.forEach(a => {
+                if (a.type === 'link') {
+                    linksHtml += `
+                        <div class="attach-row" onclick="window.open('${escapeHtml(a.url)}', '_blank')">
+                            <i class='bx bx-globe attach-icon'></i>
+                            <div class="attach-row-title" contenteditable="false" 
+                                 onclick="event.stopPropagation()"
+                                 ondblclick="this.contentEditable=true; this.focus(); document.execCommand('selectAll',false,null);"
+                                 onblur="this.contentEditable=false; updateAttachTitle('${a.id}', this.innerText)"
+                                 onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escapeHtml(a.title)}</div>
+                            <div class="attach-row-actions">
+                                <i class='bx bx-trash' onclick="event.stopPropagation(); deleteAttachment('${a.id}')"></i>
+                            </div>
+                        </div>
+                    `;
+                } else if (a.type === 'image') {
+                    const src = a.data ? a.data : a.url;
+                    const meta = a.data ? formatBytes(a.size) : 'image';
+                    imagesHtml += `
+                        <div class="attach-card" onclick="openLightbox('${src}')">
+                            <img src="${src}" class="attach-card-thumb" onerror="this.src=''; this.style.background='#EF4444';">
+                            <div class="attach-card-info">
+                                <div class="attach-card-title">${escapeHtml(a.title)}</div>
+                                <div class="attach-card-meta">${meta}</div>
+                            </div>
+                            <div class="attach-row-actions">
+                                <i class='bx bx-trash' onclick="event.stopPropagation(); deleteAttachment('${a.id}')"></i>
+                            </div>
+                        </div>
+                    `;
+                } else if (a.type === 'pdf') {
+                    const meta = a.data ? formatBytes(a.size) : 'pdf';
+                    const src = a.data ? a.data : a.url;
+                    pdfsHtml += `
+                        <div class="attach-card">
+                            <div class="attach-card-pdf"><i class='bx bxs-file-pdf'></i></div>
+                            <div class="attach-card-info">
+                                <div class="attach-card-title">${escapeHtml(a.title)}</div>
+                                <div class="attach-card-meta">${meta}</div>
+                            </div>
+                            <div class="attach-row-actions">
+                                <i class='bx bx-show' onclick="openPdfModal('${src}')"></i>
+                                <i class='bx bx-trash' onclick="deleteAttachment('${a.id}')"></i>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('attachments-body').innerHTML = `
+                <div class="attach-section">
+                    <div class="attach-label-row">
+                        <span><i class='bx bx-link'></i> Links</span>
+                        <i class='bx bx-plus-circle' onclick="toggleAddInput('link')"></i>
+                    </div>
+                    <div id="add-link-wrap" class="attach-input-row" style="display:none;">
+                        <input type="text" id="add-link-input" placeholder="Paste URL here..." onkeydown="if(event.key==='Enter') saveLinkInput(); if(event.key==='Escape') toggleAddInput('link');">
+                        <i class='bx bx-check' onclick="saveLinkInput()"></i>
+                    </div>
+                    ${linksHtml}
+                </div>
+
+                <div class="attach-section">
+                    <div class="attach-label-row">
+                        <span><i class='bx bx-image'></i> Images</span>
+                        <i class='bx bx-plus-circle' onclick="toggleAddInput('image')"></i>
+                    </div>
+                    <div id="add-image-wrap" style="display:none;">
+                        <div class="attach-inline-options">
+                            <div onclick="document.getElementById('img-upload-input').click()"><i class='bx bx-upload'></i> Upload</div>
+                            <div onclick="toggleAddInput('image-url')"><i class='bx bx-link-alt'></i> From URL</div>
+                        </div>
+                        <div id="add-image-url-wrap" class="attach-input-row" style="display:none;">
+                            <input type="text" id="add-image-url-input" placeholder="Image URL..." onkeydown="if(event.key==='Enter') saveImageUrl();">
+                            <i class='bx bx-check' onclick="saveImageUrl()"></i>
+                        </div>
+                        <input type="file" id="img-upload-input" accept="image/*" style="display:none" onchange="handleFileUpload(event, 'image')">
+                    </div>
+                    ${imagesHtml}
+                </div>
+
+                <div class="attach-section">
+                    <div class="attach-label-row">
+                        <span><i class='bx bxs-file-pdf'></i> PDFs</span>
+                        <i class='bx bx-plus-circle' onclick="toggleAddInput('pdf')"></i>
+                    </div>
+                    <div id="add-pdf-wrap" style="display:none;">
+                        <div class="attach-inline-options">
+                            <div onclick="document.getElementById('pdf-upload-input').click()"><i class='bx bx-upload'></i> Upload</div>
+                            <div onclick="toggleAddInput('pdf-url')"><i class='bx bx-link-alt'></i> From URL</div>
+                        </div>
+                        <div id="add-pdf-url-wrap" class="attach-input-row" style="display:none;">
+                            <input type="text" id="add-pdf-url-input" placeholder="PDF URL..." onkeydown="if(event.key==='Enter') savePdfUrl();">
+                            <i class='bx bx-check' onclick="savePdfUrl()"></i>
+                        </div>
+                        <input type="file" id="pdf-upload-input" accept="application/pdf" style="display:none" onchange="handleFileUpload(event, 'pdf')">
+                    </div>
+                    ${pdfsHtml}
+                </div>
+            `;
+        }
+
+        function toggleAddInput(type) {
+            const wrap = document.getElementById(`add-${type}-wrap`);
+            if (wrap) {
+                wrap.style.display = wrap.style.display === 'none' ? 'flex' : 'none';
+                if (wrap.style.display === 'flex') {
+                    const input = document.getElementById(`add-${type}-input`) || document.getElementById(`add-${type}-url-input`);
+                    if (input) { input.value = ''; input.focus(); }
+                }
+            }
+        }
+
+        function extractDomain(url) {
+            try { return new URL(url).hostname; } catch (e) { return url; }
+        }
+        function extractFilename(url) {
+            try { return url.split('/').pop().split('#')[0].split('?')[0] || url; } catch (e) { return url; }
+        }
+
+        function saveLinkInput() {
+            const input = document.getElementById('add-link-input');
+            let url = input.value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            addAttachment({ type: 'link', url, title: extractDomain(url) });
+        }
+        function saveImageUrl() {
+            const input = document.getElementById('add-image-url-input');
+            let url = input.value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            addAttachment({ type: 'image', url, title: extractDomain(url) });
+        }
+        function savePdfUrl() {
+            const input = document.getElementById('add-pdf-url-input');
+            let url = input.value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            addAttachment({ type: 'pdf', url, title: extractFilename(url) || extractDomain(url) });
+        }
+
+        function handleFileUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                showToast("<i class='bx bx-error'></i> Large file — may slow down saves");
+            }
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                addAttachment({
+                    type: type,
+                    title: file.name,
+                    data: evt.target.result,
+                    size: file.size
+                });
+            };
+            reader.readAsDataURL(file);
+            e.target.value = ''; // reset
+        }
+
+        function addAttachment(data) {
+            saveSnapshot();
+            const node = state.nodes.find(n => n.id === currentAttachNodeId);
+            if (!node) return;
+            node.attachments.push({ id: uuidv4(), ...data });
+            saveState();
+            renderNode(node);
+            renderAttachmentsPanel();
+        }
+
+        function deleteAttachment(attachId) {
+            saveSnapshot();
+            const node = state.nodes.find(n => n.id === currentAttachNodeId);
+            if (!node) return;
+            node.attachments = node.attachments.filter(a => a.id !== attachId);
+            saveState();
+            renderNode(node);
+            renderAttachmentsPanel();
+        }
+
+        function updateAttachTitle(attachId, title) {
+            const node = state.nodes.find(n => n.id === currentAttachNodeId);
+            if (!node) return;
+            const a = node.attachments.find(a => a.id === attachId);
+            if (a && a.title !== title) {
+                saveSnapshot();
+                a.title = title;
+                saveState();
+                renderNode(node);
+            }
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-overlay').style.display = 'flex';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox-overlay').style.display = 'none';
+            document.getElementById('lightbox-img').src = '';
+        }
+
+        function openPdfModal(src) {
+            document.getElementById('pdf-iframe').src = src;
+            document.getElementById('pdf-modal').style.display = 'flex';
+        }
+        function closePdfModal() {
+            document.getElementById('pdf-modal').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+        }
+
+        // Initialize
+        loadState();
+
+    </script>
+</body>
+
+</html>
