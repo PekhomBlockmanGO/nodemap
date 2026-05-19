@@ -818,6 +818,20 @@
             border-radius: 50%;
         }
 
+        /* Larger touch tap zone on mobile */
+        .touch-device .port::before {
+            content: '';
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            z-index: 10;
+            border-radius: 50%;
+        }
+
         .port:hover {
             box-shadow: 0 0 0 6px var(--node-accent-t35);
         }
@@ -962,13 +976,15 @@
 
         #credit-tag {
             position: fixed;
-            bottom: 24px;
-            left: 24px;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: 'Poppins', sans-serif;
-            font-size: 11px;
-            color: var(--color-text-muted);
+            font-size: 12px;
+            color: #C4BAA8;
+            letter-spacing: 0.02em;
             pointer-events: none;
-            z-index: 100;
+            z-index: 50;
         }
 
         #minimap-container {
@@ -1605,12 +1621,7 @@
 
         <div class="sidebar-divider sidebar-text"></div>
         <div class="sidebar-section-title sidebar-text">TIPS</div>
-        <div class="tip-row sidebar-text"><i class='bx bx-move'></i> Drag nodes freely</div>
-        <div class="tip-row sidebar-text"><i class='bx bx-git-branch'></i> Drag ports to connect</div>
-        <div class="tip-row sidebar-text"><i class='bx bx-edit-alt'></i> Double-click to edit</div>
-        <div class="tip-row sidebar-text" style="margin-top: 8px;"><i class='bx bx-expand-alt'></i> Space+Drag to pan
-        </div>
-        <div class="tip-row sidebar-text"><i class='bx bx-search-plus'></i> Scroll to zoom</div>
+        <div id="tips-container" class="sidebar-text"></div>
 
         <div class="sidebar-divider sidebar-text"></div>
         <div class="sidebar-section-title sidebar-text"><i class='bx bx-bar-chart-alt-2'></i> PROGRESS</div>
@@ -1745,6 +1756,33 @@
     </div>
 
     <script>
+        // --- Mobile Detection ---
+        const isMobile = 'ontouchstart' in window;
+        if (isMobile) document.body.classList.add('touch-device');
+
+        // --- Populate Tips ---
+        (function populateTips() {
+            const container = document.getElementById('tips-container');
+            if (!container) return;
+            if (isMobile) {
+                container.innerHTML = `
+                    <div class="tip-row"><i class='bx bx-move'></i> Drag nodes freely</div>
+                    <div class="tip-row"><i class='bx bx-git-branch'></i> Tap & drag ports to connect</div>
+                    <div class="tip-row"><i class='bx bx-edit-alt'></i> Double-tap to edit text</div>
+                    <div class="tip-row"><i class='bx bx-hand'></i> Two-finger drag to pan</div>
+                    <div class="tip-row"><i class='bx bx-search-plus'></i> Pinch to zoom</div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="tip-row"><i class='bx bx-move'></i> Drag nodes freely</div>
+                    <div class="tip-row"><i class='bx bx-git-branch'></i> Drag ports to connect</div>
+                    <div class="tip-row"><i class='bx bx-edit-alt'></i> Double-click to edit</div>
+                    <div class="tip-row"><i class='bx bx-expand-alt'></i> Space+Drag to pan</div>
+                    <div class="tip-row"><i class='bx bx-search-plus'></i> Scroll to zoom</div>
+                `;
+            }
+        })();
+
         // --- State ---
         let state = {
             version: 2,
@@ -1772,6 +1810,7 @@
         let activeSourceNode = null;
         let activeSourcePort = null;
         let livePreviewPath = null;
+        let activeTouchId = null; // track which touch is drawing a connection
 
         // --- Core Helpers ---
         function uuidv4() { return crypto.randomUUID(); }
@@ -1950,6 +1989,76 @@
             saveState();
         }, { passive: false });
 
+        // --- Touch: Two-finger Pan & Pinch-to-Zoom ---
+        let touchPanActive = false;
+        let touchLastMidX = 0, touchLastMidY = 0;
+        let touchInitialDist = 0;
+        let touchInitialScale = 1;
+
+        function getTouchMidpoint(t1, t2) {
+            return {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
+        }
+        function getTouchDist(t1, t2) {
+            return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        }
+
+        canvasWrapper.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                // Cancel any active connection drawing
+                if (isDrawingConnection) cancelConnection();
+                touchPanActive = true;
+                const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
+                touchLastMidX = mid.x;
+                touchLastMidY = mid.y;
+                touchInitialDist = getTouchDist(e.touches[0], e.touches[1]);
+                touchInitialScale = state.viewport.scale;
+            }
+        }, { passive: false });
+
+        canvasWrapper.addEventListener('touchmove', e => {
+            if (touchPanActive && e.touches.length === 2) {
+                e.preventDefault();
+                const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
+                const dx = mid.x - touchLastMidX;
+                const dy = mid.y - touchLastMidY;
+
+                // Pan
+                state.viewport.x += dx;
+                state.viewport.y += dy;
+                touchLastMidX = mid.x;
+                touchLastMidY = mid.y;
+
+                // Pinch zoom
+                const newDist = getTouchDist(e.touches[0], e.touches[1]);
+                let newScale = touchInitialScale * (newDist / touchInitialDist);
+                newScale = Math.max(0.3, Math.min(newScale, 2.5));
+
+                // Zoom towards midpoint
+                const rect = canvasWrapper.getBoundingClientRect();
+                const zoomPointX = mid.x - rect.left;
+                const zoomPointY = mid.y - rect.top;
+                const ratio = 1 - newScale / state.viewport.scale;
+                state.viewport.x += (zoomPointX - state.viewport.x) * ratio;
+                state.viewport.y += (zoomPointY - state.viewport.y) * ratio;
+                state.viewport.scale = newScale;
+
+                updateViewport();
+            }
+        }, { passive: false });
+
+        canvasWrapper.addEventListener('touchend', e => {
+            if (e.touches.length < 2) {
+                if (touchPanActive) {
+                    touchPanActive = false;
+                    saveState();
+                }
+            }
+        }, { passive: false });
+
         // --- UI Interactions ---
         // Sidebar Toggle
         let sidebarCollapsed = localStorage.getItem('nodemap_sidebar') === 'collapsed';
@@ -2068,6 +2177,12 @@
                     <div class="port port-right port-output" data-node="${nodeData.id}" data-port="right" onmousedown="startConnection(event, '${nodeData.id}', 'right')"><div class="port-tooltip">drag to connect</div></div>
                     <div class="port port-bottom port-output" data-node="${nodeData.id}" data-port="bottom" onmousedown="startConnection(event, '${nodeData.id}', 'bottom')"><div class="port-tooltip">drag to connect</div></div>
                 `;
+                // Attach touch listeners after innerHTML
+                requestAnimationFrame(() => {
+                    el.querySelectorAll('.port-output').forEach(port => {
+                        port.addEventListener('touchstart', e2 => startConnectionTouch(e2, nodeData.id, port.dataset.port), { passive: false });
+                    });
+                });
             } else {
                 const checkedCount = nodeData.items.filter(i => i.checked).length;
                 const totalCount = nodeData.items.length;
@@ -2144,6 +2259,12 @@
                     <div class="port port-right port-output" data-node="${nodeData.id}" data-port="right" onmousedown="startConnection(event, '${nodeData.id}', 'right')"><div class="port-tooltip">drag to connect</div></div>
                     <div class="port port-bottom port-output" data-node="${nodeData.id}" data-port="bottom" onmousedown="startConnection(event, '${nodeData.id}', 'bottom')"><div class="port-tooltip">drag to connect</div></div>
                 `;
+                // Attach touch listeners after innerHTML
+                requestAnimationFrame(() => {
+                    el.querySelectorAll('.port-output').forEach(port => {
+                        port.addEventListener('touchstart', e2 => startConnectionTouch(e2, nodeData.id, port.dataset.port), { passive: false });
+                    });
+                });
             }
 
             el.addEventListener('contextmenu', e => {
@@ -2412,6 +2533,17 @@
             svg.appendChild(livePreviewPath);
         }
 
+        // Touch version of startConnection
+        function startConnectionTouch(e, nodeId, port) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (touchPanActive) return; // don't start connection during two-finger gesture
+            const touch = e.touches[0];
+            if (!touch) return;
+            activeTouchId = touch.identifier;
+            startConnection(e, nodeId, port);
+        }
+
         function updateLiveConnection(clientX, clientY) {
             if (!livePreviewPath) return;
             const p1 = getPortPos(activeSourceNode, activeSourcePort);
@@ -2450,11 +2582,46 @@
             isDrawingConnection = false;
             activeSourceNode = null;
             activeSourcePort = null;
+            activeTouchId = null;
             if (livePreviewPath) {
                 livePreviewPath.remove();
                 livePreviewPath = null;
             }
         }
+
+        // --- Touch Connection Drawing (global listeners) ---
+        document.addEventListener('touchmove', e => {
+            if (isDrawingConnection && activeSourceNode && e.touches.length === 1) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                requestAnimationFrame(() => {
+                    updateLiveConnection(touch.clientX, touch.clientY);
+                });
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            if (isDrawingConnection && activeSourceNode) {
+                const touch = e.changedTouches[0];
+                if (!touch) { cancelConnection(); return; }
+
+                // Use elementFromPoint to detect what's under the finger
+                const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (el) {
+                    // Walk up to find a port-input element
+                    const portEl = el.closest('.port-input');
+                    if (portEl) {
+                        const targetNodeId = portEl.dataset.node;
+                        const targetPort = portEl.dataset.port;
+                        if (targetNodeId && targetNodeId !== activeSourceNode) {
+                            finishConnection(e, targetNodeId, targetPort);
+                            return;
+                        }
+                    }
+                }
+                cancelConnection();
+            }
+        }, { passive: false });
 
         function drawAllConnections() {
             const defs = svg.querySelector('defs').innerHTML;
