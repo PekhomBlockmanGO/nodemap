@@ -124,6 +124,13 @@
             transition: width 0.25s ease;
         }
 
+        .sidebar-inner {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 24px;
+        }
+
         #sidebar.collapsed {
             width: 48px;
         }
@@ -1614,6 +1621,14 @@
             cursor: default;
         }
         /* Import / Export Buttons */
+        .sidebar-actions {
+            display: flex;
+            gap: 8px;
+            margin: 16px 16px 0;
+        }
+        #sidebar.collapsed .sidebar-actions {
+            display: none;
+        }
         .btn-io {
             flex: 1;
             height: 34px;
@@ -1871,6 +1886,8 @@
             <i class='bx bx-chevron-left' id="sidebar-toggle-icon"></i>
         </div>
 
+        <div class="sidebar-inner">
+
         <div class="sidebar-section-title sidebar-text" style="justify-content: space-between;">
             <div><i class='bx bx-calendar-event'></i> EXAM</div>
             <i class='bx bx-cog' onclick="toggleExamSetup()" style="font-size: 14px; cursor: pointer;"></i>
@@ -1915,13 +1932,15 @@
 
         <div class="sidebar-divider sidebar-text"></div>
 
-        <div class="sidebar-actions sidebar-text" style="display: flex; gap: 8px; margin: 16px 16px 0;">
-            <button class="btn-io" onclick="exportCanvas()"><i class='bx bx-export'></i> Export</button>
-            <button class="btn-io" onclick="importCanvasTrigger()"><i class='bx bx-import'></i> Import</button>
+        <div class="sidebar-actions">
+            <button class="btn-io" onclick="exportCanvas()"><i class='bx bx-export'></i> <span class="sidebar-text">Export</span></button>
+            <button class="btn-io" onclick="importCanvasTrigger()"><i class='bx bx-import'></i> <span class="sidebar-text">Import</span></button>
             <input type="file" id="import-input" accept=".json" style="display: none;" onchange="processImport(event)">
         </div>
         <div class="sidebar-section-title sidebar-text"><i class='bx bx-bar-chart-alt-2'></i> PROGRESS</div>
         <div id="progress-dashboard" class="sidebar-text"></div>
+
+        </div><!-- end sidebar-inner -->
     </div>
 
     <!-- Canvas -->
