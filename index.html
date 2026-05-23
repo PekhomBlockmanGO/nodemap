@@ -1571,6 +1571,284 @@
             flex-grow: 1;
             width: 100%;
         }
+        /* --- TRUNCATED TEXT TOOLTIP --- */
+        #nodemap-tooltip {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            background: #1A1A2E;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            max-width: 280px;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        #nodemap-tooltip.visible {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .node-title,
+        .node-subject-title,
+        .node-group-title,
+        .editable-text,
+        .checklist-item-text,
+        .check-text,
+        .attach-row-title,
+        .progress-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            cursor: default;
+        }
+        /* Import / Export Buttons */
+        .btn-io {
+            flex: 1;
+            height: 34px;
+            background: transparent;
+            border: 1px solid #E0D9CE;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            color: #A89880;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-io:hover {
+            background: #F0EDE6;
+            color: #1A1A2E;
+            border-color: #C4BAA8;
+        }
+
+        /* Exam Countdown */
+        #exam-container {
+            margin: 0 16px;
+        }
+        .exam-btn-dashed {
+            width: 100%;
+            height: 36px;
+            background: transparent;
+            border: 1.5px dashed #D0C9BE;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #C4BAA8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .exam-btn-dashed:hover {
+            border-color: #A89880;
+            color: #A89880;
+            background: rgba(0,0,0,0.02);
+        }
+        .exam-countdown-b {
+            display: flex;
+            flex-direction: column;
+        }
+        .exam-days-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .exam-days-num {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: #6C63FF;
+            line-height: 1;
+        }
+        .exam-days-lbl {
+            font-size: 11px;
+            color: #A89880;
+        }
+        .exam-name {
+            font-weight: 500;
+            font-size: 12px;
+            color: #1A1A2E;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+        .exam-prog-wrap {
+            width: 100%;
+            height: 5px;
+            background: #E0D9CE;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .exam-prog-fill {
+            height: 100%;
+            background: #6C63FF;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .exam-since {
+            font-size: 10px;
+            color: #C4BAA8;
+        }
+        .exam-days-num.exam-red {
+            color: #EF4444;
+        }
+        .exam-red-text {
+            font-weight: 500;
+            font-size: 12px;
+            color: #EF4444;
+            margin-top: 2px;
+        }
+
+        /* Exam Setup Form */
+        .exam-setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .exam-setup-form.expanded {
+            max-height: 250px;
+            margin-top: 8px;
+        }
+        .exam-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .exam-label {
+            font-size: 11px;
+            color: #A89880;
+        }
+        .ghost-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #E0D9CE;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: #1A1A2E;
+            padding: 4px 0;
+            outline: none;
+        }
+        .ghost-input[type="date"] {
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .ghost-input::placeholder {
+            color: #C4BAA8;
+        }
+        .exam-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .btn-exam-set {
+            background: #6C63FF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            height: 34px;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn-exam-set:hover { opacity: 0.9; }
+        .btn-exam-cancel {
+            background: transparent;
+            color: #A89880;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .btn-exam-cancel:hover { color: #1A1A2E; }
+
+        /* Motivational Quotes */
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .logo-area.has-quote .logo-text {
+            font-size: 13px;
+        }
+        .quote-text {
+            font-family: 'Poppins', sans-serif;
+            font-style: italic;
+            font-size: 11px;
+            color: #A89880;
+            max-width: 380px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @media (max-width: 768px) {
+            .quote-text {
+                max-width: 200px;
+            }
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Custom Toast for Import */
+        .toast-import {
+            width: 320px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .toast-import-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .btn-toast {
+            flex: 1;
+            height: 30px;
+            border-radius: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s;
+        }
+        .btn-toast:hover { opacity: 0.8; }
+        .btn-toast-confirm {
+            background: #6C63FF;
+            color: white;
+        }
+        .btn-toast-cancel {
+            background: transparent;
+            border: 1px solid #E0D9CE;
+            color: #A89880;
+        }
     </style>
 </head>
 
@@ -1578,7 +1856,10 @@
 
     <!-- UI Chrome -->
     <div id="topbar">
-        <div class="logo-text"><i class='bx bxs-circle' style='color:#6C63FF;font-size:10px'></i> NodeMap</div>
+        <div class="logo-area" id="topbar-logo-area">
+            <div class="logo-text"><i class='bx bxs-circle' style='color:#6C63FF;font-size:10px'></i> NodeMap</div>
+            <!-- Quote injected here by JS -->
+        </div>
         <div class="topbar-actions">
             <button class="btn btn-save" onclick="saveState(true)"><i class='bx bx-save'></i> Save</button>
             <button class="btn btn-clear" onclick="clearCanvas()"><i class='bx bx-trash'></i> Clear</button>
@@ -1589,6 +1870,15 @@
         <div id="sidebar-toggle" onclick="toggleSidebar()">
             <i class='bx bx-chevron-left' id="sidebar-toggle-icon"></i>
         </div>
+
+        <div class="sidebar-section-title sidebar-text" style="justify-content: space-between;">
+            <div><i class='bx bx-calendar-event'></i> EXAM</div>
+            <i class='bx bx-cog' onclick="toggleExamSetup()" style="font-size: 14px; cursor: pointer;"></i>
+        </div>
+        <div id="exam-container" class="sidebar-text">
+            <!-- Rendered by JS -->
+        </div>
+        <div class="sidebar-divider sidebar-text"></div>
 
         <div class="sidebar-section-title sidebar-text">NODES</div>
 
@@ -1624,6 +1914,12 @@
         <div id="tips-container" class="sidebar-text"></div>
 
         <div class="sidebar-divider sidebar-text"></div>
+
+        <div class="sidebar-actions sidebar-text" style="display: flex; gap: 8px; margin: 16px 16px 0;">
+            <button class="btn-io" onclick="exportCanvas()"><i class='bx bx-export'></i> Export</button>
+            <button class="btn-io" onclick="importCanvasTrigger()"><i class='bx bx-import'></i> Import</button>
+            <input type="file" id="import-input" accept=".json" style="display: none;" onchange="processImport(event)">
+        </div>
         <div class="sidebar-section-title sidebar-text"><i class='bx bx-bar-chart-alt-2'></i> PROGRESS</div>
         <div id="progress-dashboard" class="sidebar-text"></div>
     </div>
@@ -3193,10 +3489,424 @@
             document.getElementById('pdf-iframe').src = '';
         }
 
+        // --- FINAL ADDITIONS: IMPORT/EXPORT, EXAM COUNTDOWN, MOTIVATIONAL QUOTES ---
+
+        // 1. IMPORT / EXPORT LOGIC
+        function exportCanvas() {
+            const data = {
+                version: 1,
+                exported_at: new Date().toISOString(),
+                nodemap_canvas_state: JSON.parse(localStorage.getItem('nodemap_canvas_state') || '{"nodes":[],"connections":[],"viewport":{"x":0,"y":0,"scale":1}}'),
+                nodemap_exam_state: JSON.parse(localStorage.getItem('nodemap_exam_state') || 'null'),
+                nodemap_sidebar: document.getElementById('sidebar').classList.contains('collapsed') ? 'collapsed' : 'expanded',
+                nodemap_quote_state: JSON.parse(localStorage.getItem('nodemap_quote_state') || 'null')
+            };
+            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.download = `nodemap-export-${dateStr}.json`;
+            a.click();
+            showToast("<i class='bx bx-check-circle'></i> Canvas exported!");
+        }
+
+        function importCanvasTrigger() {
+            document.getElementById('import-input').click();
+        }
+
+        function processImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.version && data.nodemap_canvas_state && Array.isArray(data.nodemap_canvas_state.nodes)) {
+                        
+                        // Custom confirmation toast
+                        const toastContainer = document.getElementById('toast-container');
+                        const toast = document.createElement('div');
+                        toast.className = 'toast toast-import';
+                        toast.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                ⚠️ This will replace your current canvas.
+                            </div>
+                            <div class="toast-import-actions">
+                                <button class="btn-toast btn-toast-confirm" onclick="confirmImport(this)">Confirm Import</button>
+                                <button class="btn-toast btn-toast-cancel" onclick="cancelImport(this)">Cancel</button>
+                            </div>
+                        `;
+                        toastContainer.appendChild(toast);
+                        
+                        // Attach data temporarily to the toast for retrieval
+                        toast.dataset.importData = JSON.stringify(data);
+
+                    } else {
+                        showToast("<i class='bx bx-error'></i> Invalid file — not a NodeMap export");
+                    }
+                } catch (err) {
+                    showToast("<i class='bx bx-error'></i> Invalid JSON format");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+
+        window.confirmImport = function(btn) {
+            const toast = btn.closest('.toast');
+            const data = JSON.parse(toast.dataset.importData);
+            
+            localStorage.setItem('nodemap_canvas_state', JSON.stringify(data.nodemap_canvas_state));
+            if (data.nodemap_exam_state) {
+                localStorage.setItem('nodemap_exam_state', JSON.stringify(data.nodemap_exam_state));
+            } else {
+                localStorage.removeItem('nodemap_exam_state');
+            }
+            if (data.nodemap_quote_state) {
+                localStorage.setItem('nodemap_quote_state', JSON.stringify(data.nodemap_quote_state));
+            }
+
+            if (data.nodemap_sidebar === 'collapsed') {
+                document.getElementById('sidebar').classList.add('collapsed');
+            } else {
+                document.getElementById('sidebar').classList.remove('collapsed');
+            }
+
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+
+            // Reload UI
+            clearCanvasElements();
+            loadState();
+            renderExamCountdown();
+            initQuotes();
+            showToast("<i class='bx bx-check-circle'></i> Canvas imported successfully!");
+        };
+
+        window.cancelImport = function(btn) {
+            const toast = btn.closest('.toast');
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        };
+
+        function clearCanvasElements() {
+            document.getElementById('nodes-container').innerHTML = '';
+            document.querySelectorAll('.connection-path, .conn-delete').forEach(e => e.remove());
+        }
+
+        // 2. EXAM COUNTDOWN LOGIC
+        function toggleExamSetup() {
+            const form = document.querySelector('.exam-setup-form');
+            if (form) {
+                form.classList.toggle('expanded');
+                return;
+            }
+            
+            // Build the inline form if it doesn't exist
+            const container = document.getElementById('exam-container');
+            const formHtml = `
+                <div class="exam-setup-form expanded">
+                    <div class="exam-field">
+                        <label class="exam-label">Exam / Subject name</label>
+                        <input type="text" id="exam-input-name" class="ghost-input" placeholder="e.g. End Semester 2025">
+                    </div>
+                    <div class="exam-field">
+                        <label class="exam-label">First exam date</label>
+                        <input type="date" id="exam-input-date" class="ghost-input">
+                    </div>
+                    <div class="exam-actions">
+                        <button class="btn-exam-set" onclick="setExamCountdown()">Set Countdown</button>
+                        <button class="btn-exam-cancel" onclick="toggleExamSetup()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', formHtml);
+            
+            const dateInput = document.getElementById('exam-input-date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+        }
+
+        function setExamCountdown() {
+            const name = document.getElementById('exam-input-name').value.trim();
+            const dateStr = document.getElementById('exam-input-date').value;
+            
+            if (!name || !dateStr) {
+                showToast("Please fill both fields");
+                return;
+            }
+
+            const state = {
+                examName: name,
+                examDate: dateStr,
+                setDate: new Date().toISOString().split('T')[0]
+            };
+            localStorage.setItem('nodemap_exam_state', JSON.stringify(state));
+            
+            renderExamCountdown();
+            initQuotes(); // Re-eval quotes
+        }
+
+        function renderExamCountdown() {
+            const container = document.getElementById('exam-container');
+            const examState = JSON.parse(localStorage.getItem('nodemap_exam_state'));
+            
+            if (!examState) {
+                // STATE A
+                container.innerHTML = `<button class="exam-btn-dashed" onclick="toggleExamSetup()">+ Set exam date</button>`;
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const examDate = new Date(examState.examDate);
+            examDate.setHours(0,0,0,0);
+            
+            const setDate = new Date(examState.setDate);
+            setDate.setHours(0,0,0,0);
+
+            const totalTime = examDate - setDate;
+            const elapsedTime = today - setDate;
+            const remainingTime = examDate - today;
+            
+            const daysLeft = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+            
+            if (daysLeft < 0) {
+                // STATE D - Passed
+                localStorage.removeItem('nodemap_exam_state');
+                renderExamCountdown();
+                initQuotes();
+                return;
+            }
+
+            if (daysLeft === 0) {
+                // STATE C - Today
+                container.innerHTML = `
+                    <div class="exam-countdown-b">
+                        <div class="exam-days-row">
+                            <span class="exam-days-num exam-red">0</span>
+                        </div>
+                        <div class="exam-red-text">Good luck today! 🎯</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // STATE B - Active
+            let pct = totalTime > 0 ? (elapsedTime / totalTime) * 100 : 0;
+            if (pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const formattedSetDate = `${setDate.getDate()} ${months[setDate.getMonth()]}`;
+
+            container.innerHTML = `
+                <div class="exam-countdown-b">
+                    <div class="exam-days-row">
+                        <span class="exam-days-num">${daysLeft}</span>
+                        <span class="exam-days-lbl">days left</span>
+                    </div>
+                    <div class="exam-name" title="${examState.examName}">${examState.examName}</div>
+                    <div class="exam-prog-wrap">
+                        <div class="exam-prog-fill" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="exam-since">since ${formattedSetDate}</div>
+                </div>
+            `;
+        }
+
+        // 3. MOTIVATIONAL QUOTES
+        const MOTIVATIONAL_QUOTES = [
+            "The secret of getting ahead is getting started.",
+            "It always seems impossible until it's done.",
+            "Push yourself, because no one else is going to do it for you.",
+            "Great things never come from comfort zones.",
+            "Dream it. Wish it. Do it.",
+            "Success doesn't just find you. You have to go out and get it.",
+            "The harder you work for something, the greater you'll feel when you achieve it.",
+            "Don't stop when you're tired. Stop when you're done.",
+            "Wake up with determination. Go to bed with satisfaction.",
+            "Do something today that your future self will thank you for.",
+            "Little things make big days.",
+            "It's going to be hard, but hard does not mean impossible.",
+            "Don't wait for opportunity. Create it.",
+            "Sometimes we're tested not to show our weaknesses, but to discover our strengths.",
+            "The key to success is to focus on goals, not obstacles.",
+            "Dream bigger. Do bigger.",
+            "You don't have to be great to start, but you have to start to be great.",
+            "Be the best version of you.",
+            "Every day is a second chance.",
+            "It's not about how bad you want it. It's about how hard you're willing to work for it.",
+            "Work hard in silence, let your success be your noise.",
+            "Believe you can and you're halfway there.",
+            "Start where you are. Use what you have. Do what you can.",
+            "Strive for progress, not perfection.",
+            "You are capable of more than you know.",
+            "Small steps every day lead to big results.",
+            "Difficult roads often lead to beautiful destinations.",
+            "The pain you feel today will be the strength you feel tomorrow.",
+            "Doubt kills more dreams than failure ever will.",
+            "What you do today can improve all your tomorrows.",
+            "Don't limit your challenges. Challenge your limits.",
+            "Energy and persistence conquer all things.",
+            "You've got this. One chapter at a time.",
+            "Study hard, for the well is deep and our brains are shallow.",
+            "Your future is created by what you do today, not tomorrow.",
+            "Motivation is what gets you started. Habit is what keeps you going.",
+            "There is no substitute for hard work.",
+            "Success is the sum of small efforts, repeated day in and day out.",
+            "Don't count the days. Make the days count.",
+            "You miss 100% of the shots you don't take.",
+            "If it doesn't challenge you, it doesn't change you.",
+            "The expert in anything was once a beginner.",
+            "Learn from yesterday, live for today, hope for tomorrow.",
+            "Good things come to people who wait, but better things come to those who go out and get them.",
+            "Every champion was once a contender who refused to give up.",
+            "Some people dream of success while others wake up and work.",
+            "Perseverance is not a long race; it is many short races one after another.",
+            "You don't have to be perfect to be amazing.",
+            "Fall seven times, stand up eight.",
+            "Action is the foundational key to all success.",
+            "Hard work beats talent when talent doesn't work hard.",
+            "It does not matter how slowly you go as long as you do not stop.",
+            "Keep your eyes on the stars and your feet on the ground.",
+            "Talent is cheaper than table salt. What separates the talented individual from the successful one is hard work.",
+            "The difference between ordinary and extraordinary is that little extra.",
+            "Success usually comes to those who are too busy to be looking for it.",
+            "The only way to do great work is to love what you do.",
+            "Your limitation — it's only your imagination.",
+            "Push yourself, because no one else is going to do it for you.",
+            "Great things never came from comfort zones.",
+            "The distance between dreams and reality is called action."
+        ];
+
+        function initQuotes() {
+            const logoArea = document.getElementById('topbar-logo-area');
+            const examState = JSON.parse(localStorage.getItem('nodemap_exam_state'));
+            
+            // Remove existing quote if any
+            const existingQuote = logoArea.querySelector('.quote-text');
+            if (existingQuote) existingQuote.remove();
+            logoArea.classList.remove('has-quote');
+
+            if (!examState) return;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const examDate = new Date(examState.examDate);
+            examDate.setHours(0,0,0,0);
+            
+            const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysLeft > 30 || daysLeft < 0) return; // Mode 1
+
+            // Mode 2
+            logoArea.classList.add('has-quote');
+            
+            let quoteState = JSON.parse(localStorage.getItem('nodemap_quote_state')) || {
+                lastShownDate: null,
+                lastShownIndex: -1,
+                shownIndices: []
+            };
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            if (quoteState.lastShownDate !== todayStr) {
+                // Need a new quote
+                if (quoteState.shownIndices.length >= MOTIVATIONAL_QUOTES.length) {
+                    quoteState.shownIndices = [];
+                }
+                
+                let nextIdx = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+                while (quoteState.shownIndices.includes(nextIdx)) {
+                    nextIdx = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+                }
+                
+                quoteState.lastShownIndex = nextIdx;
+                quoteState.lastShownDate = todayStr;
+                quoteState.shownIndices.push(nextIdx);
+                localStorage.setItem('nodemap_quote_state', JSON.stringify(quoteState));
+            }
+            
+            const quoteEl = document.createElement('div');
+            quoteEl.className = 'quote-text';
+            quoteEl.textContent = MOTIVATIONAL_QUOTES[quoteState.lastShownIndex];
+            logoArea.appendChild(quoteEl);
+        }
+
         // Initialize
         loadState();
+        renderExamCountdown();
+        initQuotes();
 
+        // --- BUG FIX: TRUNCATED TEXT TOOLTIP LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const tooltip = document.getElementById('nodemap-tooltip');
+            const isTouchDevice = 'ontouchstart' in window;
+            const selectors = '.node-title, .node-subject-title, .node-group-title, .editable-text, .checklist-item-text, .check-text, .attach-row-title, .progress-name';
+
+            function showTooltip(el, text) {
+                tooltip.textContent = text;
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.display = 'block';
+                tooltip.classList.remove('visible');
+
+                const rect = el.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+
+                let top = rect.top - tooltipRect.height - 8;
+                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+                if (left < 8) left = 8;
+                if (left + tooltipRect.width > window.innerWidth - 8) {
+                    left = window.innerWidth - tooltipRect.width - 8;
+                }
+                if (top < 8) top = rect.bottom + 8;
+
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.style.visibility = 'visible';
+
+                requestAnimationFrame(() => {
+                    tooltip.classList.add('visible');
+                });
+            }
+
+            function hideTooltip() {
+                tooltip.classList.remove('visible');
+            }
+
+            if (!isTouchDevice) {
+                document.addEventListener('mouseover', (e) => {
+                    const target = e.target.closest(selectors);
+                    if (target && target.scrollWidth > target.clientWidth) {
+                        showTooltip(target, target.textContent.trim());
+                    }
+                });
+
+                document.addEventListener('mouseout', (e) => {
+                    const target = e.target.closest(selectors);
+                    if (target) {
+                        hideTooltip();
+                    }
+                });
+            } else {
+                document.addEventListener('touchstart', (e) => {
+                    const target = e.target.closest(selectors);
+                    if (target && target.scrollWidth > target.clientWidth) {
+                        e.stopPropagation();
+                        showTooltip(target, target.textContent.trim());
+                    } else {
+                        hideTooltip();
+                    }
+                }, { passive: false });
+            }
+        });
     </script>
+    <!-- Truncated Text Tooltip -->
+    <div id="nodemap-tooltip"></div>
 </body>
 
 </html>
